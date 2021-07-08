@@ -8,10 +8,13 @@
     <AssemblyName>SquadBasedRoster</AssemblyName>
     <RootNamespace>SquadBasedRoster</RootNamespace>
   </PropertyGroup>
+  <Import Project="$(MSBuildLocalExtensionPath)\XCOM2.targets" />
   <ItemGroup>
     <Folder Include="Src\SquadBasedRoster\Classes\" />
-  </ItemGroup>
-  <ItemGroup>
+    <Folder Include="Config\" />
+    <Folder Include="Localization\" />
+    <Folder Include="Src\" />
+    <Folder Include="Src\SquadBasedRoster\" />
     <Content Include="ReadMe.txt" />
     <Content Include="Src\SquadBasedRoster\Classes\X2DownloadableContentInfo_SquadBasedRoster.uc" />
     <Content Include="Config\XComSquadBasedRoster.ini" />
@@ -22,6 +25,7 @@
     <Content Include="Config\XComClassData.ini" />
     <Content Include="Localization\XComGame.int" />
     <Content Include="Src\SquadBasedRoster\Classes\XComGameState_SBRSquad.uc" />
+    <Content Include="X2DownloadableContentInfo_SquadBasedRoster.uc" />
+    <Content Include="Config\XComGameCore.ini" />
   </ItemGroup>
-  <Import Project="$(MSBuildLocalExtensionPath)\XCOM2.targets" />
 </Project>
