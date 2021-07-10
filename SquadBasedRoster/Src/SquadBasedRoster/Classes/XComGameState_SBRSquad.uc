@@ -59,7 +59,7 @@ var localized string BackupTempSquadName;
 // INIT ---------------------
 //---------------------------
 
-function XComGameState_LWPersistentSquad InitSquad(optional string sName = "", optional bool Temp = false)
+function XComGameState_SBRSquad InitSquad(optional string sName = "", optional bool Temp = false)
 {
 	local TDateTime StartDate;
 	local string DateString;
@@ -88,7 +88,45 @@ function XComGameState_LWPersistentSquad InitSquad(optional string sName = "", o
 
 	SquadBioTag = XGParamTag(`XEXPANDCONTEXT.FindTag("XGParam"));
 	SquadBioTag.StrValue0 = DateString;
-	SquadBiography = `XEXPAND.ExpandString(class'UIPersonnel_SquadBarracks'.default.strDefaultSquadBiography);		
+	SquadBiography = "";//`XEXPAND.ExpandString(class'UIPersonnel_SquadBarracks'.default.strDefaultSquadBiography);		
 		
 	return self;
+}
+
+
+
+
+
+//---------------------------
+// HELPERS ---------------------
+//---------------------------
+function string GetUniqueRandomName(const array<string> NameList, string DefaultName)
+{
+	local XComGameStateHistory History;
+	local XComGameState_LWSquadManager SquadMgr;
+	local array<string> PossibleNames;
+	local StateObjectReference SquadRef;
+	local XComGameState_LWPersistentSquad SquadState;
+	local XGParamTag SquadNameTag;
+
+	History = `XCOMHISTORY;
+	SquadMgr = class'XComGameState_LWSquadManager'.static.GetSquadManager();
+	PossibleNames = NameList;
+	foreach SquadMgr.Squads(SquadRef)
+	{
+		SquadState = XComGameState_LWPersistentSquad(History.GetGameStateForObjectID(SquadRef.ObjectID));
+		if (SquadState == none)
+			continue;
+
+		PossibleNames.RemoveItem(SquadState.sSquadName);
+	}
+
+	if (PossibleNames.Length == 0)
+	{
+		SquadNameTag = XGParamTag(`XEXPANDCONTEXT.FindTag("XGParam"));
+		SquadNameTag.StrValue0 = GetRightMost(string(self));
+		return `XEXPAND.ExpandString(DefaultName);		
+	}
+
+	return PossibleNames[`SYNC_RAND(PossibleNames.Length)];
 }
