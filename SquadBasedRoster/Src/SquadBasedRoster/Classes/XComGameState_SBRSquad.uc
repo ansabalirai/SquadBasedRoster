@@ -19,7 +19,10 @@ var array<SquadAffinity> Affinity;
 // The current squad leader
 var StateObjectReference Leader;
 
-// Current squad members
+// The current specialists
+var array<StateObjectReference> Specialists;
+
+// Current squad members (includes specialists)
 var array<StateObjectReference> Members;
 
 // The faction this squad is affiliated with - only heroes of this faction
@@ -31,7 +34,7 @@ var String SquadName;
 
 // User-provided (or randon) squad logo
 var String SquadLogoPath;
-
+var string SquadBiography;  // a player-editable squad history
 // The squad level. Squads rank up after enough missions have been completed.
 var float SquadLevel;
 
@@ -41,3 +44,51 @@ var int NumMissions;
 // Number of kills from squad members. This is not just the sum of
 // all kills of all squad members, as members can be moved between squads.
 var int NumKills;
+
+
+var bool bOnMission;  // indicates the squad is currently deploying/(deployed?) to a mission site
+var bool bTemporary; // indicates that this squad is only for the current mission, and shouldn't be retained
+var StateObjectReference CurrentMission; // the current mission being deployed to -- none if no mission
+
+var localized array<string> DefaultSquadNames; // localizable array of default squadnames to choose from
+var localized array<string> TempSquadNames; // localizable array of temporary squadnames to choose from
+var localized string BackupSquadName;
+var localized string BackupTempSquadName;
+
+//---------------------------
+// INIT ---------------------
+//---------------------------
+
+function XComGameState_LWPersistentSquad InitSquad(optional string sName = "", optional bool Temp = false)
+{
+	local TDateTime StartDate;
+	local string DateString;
+	local XGParamTag SquadBioTag;
+
+	bTemporary = Temp;
+
+	if(sName != "")
+		SquadName = sName;
+	else
+		if (bTemporary)
+			SquadName = GetUniqueRandomName(TempSquadNames, BackupTempSquadName);
+		else
+			SquadName = GetUniqueRandomName(DefaultSquadNames, BackupSquadName);
+
+	if (`GAME.GetGeoscape() != none)
+	{
+		DateString = class'X2StrategyGameRulesetDataStructures'.static.GetDateString(`GAME.GetGeoscape().m_kDateTime);
+	}
+	else
+	{
+	class'X2StrategyGameRulesetDataStructures'.static.SetTime(StartDate, 0, 0, 0, class'X2StrategyGameRulesetDataStructures'.default.START_MONTH,
+															  class'X2StrategyGameRulesetDataStructures'.default.START_DAY, class'X2StrategyGameRulesetDataStructures'.default.START_YEAR);
+		DateString = class'X2StrategyGameRulesetDataStructures'.static.GetDateString(StartDate);
+	}
+
+	SquadBioTag = XGParamTag(`XEXPANDCONTEXT.FindTag("XGParam"));
+	SquadBioTag.StrValue0 = DateString;
+	SquadBiography = `XEXPAND.ExpandString(class'UIPersonnel_SquadBarracks'.default.strDefaultSquadBiography);		
+		
+	return self;
+}

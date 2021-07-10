@@ -24,6 +24,10 @@ static event OnLoadedSavedGameToStrategy()
 
 }
 
+
+
+
+// In case we want to run with out own soldier class
 static function UpdateDefaultSoldiers()
 {
 	local X2CharacterTemplateManager CharacterTemplateManager;
