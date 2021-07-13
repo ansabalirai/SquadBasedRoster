@@ -1,6 +1,8 @@
 # Squad Based Rosters
 
 For a general overview, consult the Readme.md. This is more of an in-depth rambling about various mechanics and balancing discussions.
+One important thing to note here is that I am writing all this with the assumption that we are playing with the Covert Infiiltation mod. For those not aware, it is a strategy overhaul that mimics LW2 strategy layer by having infiltrations and multi-chain missions and allows deployment of multiple squads ala LW2, without touching the tactical layer (much) and playing nice with a lot of external mods.
+
 
 ## Why Squads over soldiers
 
@@ -28,25 +30,42 @@ In any case, assuming that is the starting point of this exercise, we can get do
 - Missions are undertaken by squads (each mission by one squad). Implies no more than one faction hero per mission.
 
 ## Soldier Classes
-The problem that we now come to is how far do we want to impact the class based system in X2. On the one hand, I strongly feel like the reverse difficulty scaling in vanilla (and to some extend in LW2) needs to be addressed, as it certainly prevents me from finishing campaigns once I hit plasma tier and steamroll all missions. On the other hand, if accessibility of the mod is to be a factor (small or large), gutting the possibility of having any soldier classes at all may be undesirable. As the reader may come to realize, my answer to such questions is always to just come up with two solutions, one to placate each side, so we can certainly release the class overhaul as a separate add-on and if people want to have RPGO installed and mess around with just the squad based feature, they are free to do so. Then again, I already released the Squad Manager mod which at least addresses the role-playing itch, so ware free to do whatever as part of this mod.
+The problem that we now come to is how far do we want to impact the class based system in X2. 
+- On the one hand, I strongly feel like the reverse difficulty scaling in vanilla (and to some extend in LW2) needs to be addressed, as it certainly prevents me from finishing campaigns once I hit plasma tier and steamroll all missions. 
+- On the other hand, if accessibility of the mod is to be a factor (small or large), gutting the possibility of having any soldier classes at all may be undesirable. In addition, I would be lying if I said having some pseudo-class like version of soldiers based on what squad they are in would be interesting.
+As the reader may come to realize, my answer to such questions is chicken out and almost always to just come up with two solutions, one to placate each side, so we can certainly release the class overhaul as a separate add-on and if people want to have RPGO installed and mess around with just the squad based feature, they are free to do so. Then again, I already released the Squad Manager mod which at least addresses the role-playing itch, so we are free to do whatever as part of this mod. See more comments below inline:
+
 - Initially there is only one non-hero class - generic "soldier", all regular XCOM troops start with this class and at 'Squaddie' rank (which is mostly meaningless as soldiers don't level up).
+  - If we are to go this way, I guess I have to remove xp thresholds and empty the class data ability slot array. or maybe it is fine to have some stat increases to give some sense of progression, since at least for me, that is a big reason I love early and mid-game.
 - Soldiers can use ARs or shotguns, but not LMGs or Sniper Rifles. Secondary weapon is pistol.
-- Initial squad size for missions is 5 - leader and 4 squad members.
-- Squad size increase unlocks add 'specialist' slots (not the specialist class) to squads and mission prep. Same 2 unlocks are possible for a final max squad size of 7: leader + 4 soldiers + 2 specialists. Regular soldiers can go in specialist slots, but specialists cannot go in soldier slots.
+  - Does this imply we can at least have some pistol specific perks when leveling up, or not?
+- Initial squad size for missions is 6 - leader and 5 squad members.
+  - Note that CI starts you off with 6 slots and the GTS unlocks remove the max infiltation restriction on missions (200%/250% instead of 150% max iirc).
+- Squad size increase unlocks add 'specialist' slots (not the specialist class) to squads and mission prep. Same 2 unlocks are possible for a final max squad size of (still) 6: leader + 3 soldiers + up to 2 specialists. Regular soldiers can go in specialist slots, but specialists cannot go in soldier slots.
 - Once unlocked, soldiers can be "promoted" to specialist classes via the respec thingy.
+- By the respec thingy, I assume we mean a new slot in the GTS or training center, similar to how a rookie can choose a class.
 - Specialist "class" allowed is dependent on the faction affiliation of the squad (based on the leader).
+  - This brings up an interesting question as to how soldiers level up into specialists. Assuming soldiers do not really levelup, when do we allow a "promotion" to specialist? And how is the above restriction on affiliation implemented? If soldiers can change squad at any time, then one can easily choose any "class" they want by first assigning them to the appropriate squad. Or do we only "unlock" classes for them based on some affinity threshold?
 - Specialist soldiers are given a cosmetic rank and use special weapons.
-- Specialist weapons have a few built in perks.
-    - Skirmisher - Heavy (LMG) - suppression etc.
-    - Reaper - Sharpshooter (sniper rifle) - squadsight etc
-    - Templar - Psi (no special primary, psi thingy secondary) - some psi powers
+  - In addition, if we go with "classless" soldiers, I think we can allows specialists to have some perks upon promotion, i.e. not just tied to weapons. Details below:
+- Specialist have a few perks, based on their class:
+  - Skirmisher - Heavy (LMG) - suppression etc.
+    - I envison two variations: A Gunner (LMG) based suppression build and a Rocketeer/Grenadier build (Rocket and/or Grenaade Launcher)
+  - Reaper - Sharpshooter (sniper rifle) - squadsight etc
+    - Based on lore: A Sharpshooter (Sniper) based build and either a Scout (vektor/holotargeter build) or a support specialist (gremlin) based build.
+  - Templar - Psi (no special primary, psi thingy secondary) - some psi powers
+    - A psionic (psi amp based) build and a CQB/melee (sword/knife secondary) build, given that templars are psionic melee
+  - This allows for a decent coverage of perks from vanilla and we can always curate the perk trees to contol power level creep. Even with the vanilla trees, having at most 2 of these in a squad would still be a nerf compared to vanilla.
 - Promoting a soldier to specialist locks them to particular squad affiliations much like leaders, but can still move between squads of the same affiliation.
+  - I can see the appeal and flexibility, but this looks like more UI work for me :(
 - Hero units have a few perks attached to their special weapon kinds, but also don't level up.
+  - I can see that the initial design direction was to only attach perks to weapon kinds, but if we allow weapons to be used by specialists as well, we have to rethink this. IMO, it is simpler to just leave hero classes be and let the player use whatever perk pack they want for them. Surely, having one strong hero per squad is not too overpowered, right? Right?
 - Campaign starts with 2 squads lead by a unit of the initially contacted region, and enough soldiers to fill out the squads and have some reserves for killed/wounded units.
 - Start with 2 faction leaders to lead these squads, but getting more and contacting other factions to get squads of the other factions still takes time.
 
 
 ## Progression
+Full disclosure, I have not thought much about this at all, since this is the hard balancing part. So, most text below is unchanged. My initial vision is to have a set of perks (one denesive and one offensive row maybe) which are progressively unlocked for a squad if they have a leader and if the squad level is above certain thresholds. So, let's say if we have SL thresholds of 5/10/15/20, all the squad soldiers get 1 offensive and 1 defensive perk if the 5 < SL < 10, 2 perks each if the 10 < SL < 15 and so on. We can also consider having a LW2 style leadership perk that gives stat bonuses (aim, will, dodge, hack, crit/defense?) based on SL. However, this is all very much WIP and subject to change.
 - Soldiers don't level up - squads do (sort of). Squads have a _squad level_ (SL).
 - Squads level up by going on sufficient missions. Mission count rather than kills is the important number. Successful missions count more than failures, but failures still count more than doing nothing.
 - SL passively increases over time, and the initial SL of new squads increases as the campaign progresses. But both are slower than actively going on missions. This helps ensure creating new squads mid/late campaign is still viable, and also ensures that a squad created early but infrequently used won't be outclassed by a newly created squad.
