@@ -1,0 +1,1 @@
+class XComPresentationLayer_SBR extends XComPresentationLayer;

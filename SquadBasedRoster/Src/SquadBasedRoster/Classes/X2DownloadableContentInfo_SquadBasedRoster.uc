@@ -5,6 +5,7 @@ var config name STARTING_CLASS_NAME;
 
 static event OnLoadedSavedGame()
 {
+    class'X2Helper_SquadBasedRoster'.static.AddSlotToExistingFacility('SBR_SpecialistTrainingSlot', 'OfficerTrainingSchool');
     OnLoadedSavedGameToStrategy();
 }
 
@@ -44,7 +45,7 @@ static event InstallNewCampaign(XComGameState StartState)
 static event OnPostTemplatesCreated()
 {
 	//UpdateDefaultSoldiers();
-    
+    class'X2Helper_SquadBasedRoster'.static.AddSlotToFacility('OfficerTrainingSchool', 'SBR_SpecialistTrainingSlot', false);	
 }
 
 static event OnLoadedSavedGameToStrategy()

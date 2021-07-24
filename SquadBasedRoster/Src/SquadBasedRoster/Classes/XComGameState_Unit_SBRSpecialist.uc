@@ -35,9 +35,10 @@ var array<LeadershipEntry> LeadershipData;
 /////////////////////////////////////////////////////////////
 // ToDO: Make sure to add this component to the specialists when they are initially trained
 // Either in a tube in GTS/Training center or an instant levelup after certain rank/mission requirement are met
-function XComGameState_Unit_SBRSpecialist InitComponent()
+function XComGameState_Unit_SBRSpecialist InitComponent(optional StateObjectReference FactionRef)
 {
 	SpecialistRank = 0;
+	//AssignedFactionRef = FactionRef;
 	RegisterSoldierTacticalToStrategy();
 
 	// To Do: Change rank names, assign a faction and show a pop up that this unit is not being permamently assigned to 

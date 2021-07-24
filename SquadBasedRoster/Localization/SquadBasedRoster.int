@@ -110,7 +110,32 @@ ArmorBonus="+<amount/> Armor"
 DefenseBonus="+<amount/> Defense"
 PsiBonus="+<amount/> Psi"
 
+
+; The following are for the specialist training staff
 [UIAlert_TrainSpecialist]
 m_strContinueCSTraining="Continue"
-m_strBonusCS="Stat Improvement, Abilities and AP"
+m_strBonusCS=""
 m_strColorCS="'#3ABD23'"
+
+[UIChooseClass_TrainSpecialist]
+m_strTitle="Choose Specialist Training Focus"
+m_strInventoryLabel="Available Trainings:"
+m_strBuy="BEGIN TRAINING"
+m_strStatTitle="Specialist Training"
+;m_strStatDesc="Train this soldier as a specialist affiliated to a specific faction. Note that this will lock them in PERMANENTLY with that faction and grant them bonus faction specific abilities, which can only be used when deployed with the correctly affiliated squad (based on the leader)."
+m_strStatDesc="Specialists can go on missions without the presence of an officer, but will lose access to any learnt special abilities, incentivizing having the correct squad leader on the mission even more. Promoting a soldier to specialist locks them to particular squad affiliations much like leaders, but can still move between squads of the same affiliation without losing the ability (hehe) to use learnt abilities."
+
+[UIFacility_SpecialistTrainingSlot]
+m_strConditionSoldierDialogTitle="SPECIALIST TRAINING"
+m_strConditionSoldierDialogText="<XGParam:StrValue0/!UnitName/> can undergo special training as a Second in Command for a specific faction leader, but will be unavailable for combat during the training process. This training is irreversible. Do you want to proceed?"
+m_strStopConditionSoldierDialogTitle="STOP SPECIALIST TRAINING?"
+m_strStopConditionSoldierDialogText="Do you want to stop %UNITNAME from training?\n\nWARNING: All training progress will be lost."
+;m_strNoConditionSoldiersTooltip="There are no soldiers available to be trained as specialists."
+;m_strConditionSoldiersAvailableTooltip="Assign a soldier to be trained as a specialist."
+m_strNoSoldiersTooltip=There are no soldiers available for Specialist training. 
+m_strSoldiersAvailableTooltip=Assign a soldier to be trained.
+
+[XComGameState_HeadquartersProjectTrainSpecialist]
+m_strAbilityPoints="Ability Points"
+m_strAbility="Ability"
+m_strAbilities="Abilities"
