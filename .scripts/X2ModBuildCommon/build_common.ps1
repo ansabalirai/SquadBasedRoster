@@ -283,7 +283,9 @@ class BuildProject {
 		# read mod metadata from the x2proj file
 		Write-Host "Reading mod metadata from $($this.modSrcRoot)\$($this.modNameCanonical).x2proj..."
 		[xml]$x2projXml = Get-Content -Path "$($this.modSrcRoot)\$($this.modNameCanonical).x2proj"
-		$modProperties = $x2projXml.Project.PropertyGroup
+		$xmlPropertyGroup = $x2projXml.Project.PropertyGroup
+		$modProperties = if ($xmlPropertyGroup -is [array]) { $xmlPropertyGroup[0] } else { $xmlPropertyGroup }
+		# $modProperties = $x2projXml.Project.PropertyGroup
 		$publishedId = $modProperties.SteamPublishID
 		if ($this.publishID -ne -1) {
 			$publishedId = $this.publishID

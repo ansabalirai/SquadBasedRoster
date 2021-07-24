@@ -30,10 +30,11 @@ If you love lots of classes and perks, this is not the mod for you. There are al
 - Once unlocked, soldiers can be "promoted" to specialist classes via the respec thingy.
 - Specialist "class" allowed is dependent on the faction affiliation of the squad (based on the leader).
 - Specialist soldiers are given a cosmetic rank and use special weapons.
-- Specialist weapons have a few built in perks.
-    - Skirmisher - Heavy (LMG) - suppression etc.
-    - Reaper - Sharpshooter (sniper rifle) - squadsight etc
-    - Templar - Psi (no special primary, psi thingy secondary) - some psi powers
+- Specialist weapons have a few built in perks rows.
+    - Skirmisher - A Heavy (LMG)/suppression and a Grenadier/Rocketeer build
+    - Reaper - A Sharpshooter (sniper rifle) and a Gunslinger (?) build
+    - Templar - A Psi and a melee/CQB build
+- Specialists can go on missions without the presence of an officer, but lose access to any learnt abilities and can only resort to equipping unlocked weapons, incentivizing having a squad leader even more.
 - Promoting a soldier to specialist locks them to particular squad affiliations much like leaders, but can still move between squads of the same affiliation.
 - Hero units have a few perks attached to their special weapon kinds, but also don't level up.
 - Campaign starts with 2 squads lead by a unit of the initially contacted region, and enough soldiers to fill out the squads and have some reserves for killed/wounded units.

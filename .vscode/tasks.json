@@ -1,45 +1,31 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "Build",
             "type": "shell",
-            "command": "powershell.exe -file '${workspaceRoot}\\.scripts\\build.ps1' -mod \"SquadBasedRoster\" -srcDirectory '${workspaceRoot}' -sdkPath '${config:xcom.highlander.sdkroot}' -gamePath '${config:xcom.highlander.gameroot}'",
+            "command": "powershell.exe –NonInteractive –ExecutionPolicy Unrestricted -file '${workspaceRoot}\\.scripts\\build.ps1' -srcDirectory '${workspaceRoot}' -sdkPath '${config:xcom.highlander.sdkroot}' -gamePath '${config:xcom.highlander.gameroot}' -config 'default'",
             "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "build-debug",
+            "label": "Build debug",
             "type": "shell",
-            "command": "powershell.exe -file '${workspaceRoot}\\.scripts\\build.ps1' -mod \"SquadBasedRoster\" -srcDirectory '${workspaceRoot}' -sdkPath '${config:xcom.highlander.sdkroot}' -gamePath '${config:xcom.highlander.gameroot}' -debug",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": {
-                "fileLocation": "absolute",
-                "pattern": {
-                    "regexp": "^(.*)\\((\\d+)\\)\\s+:\\s+(Warning|Error),\\s+(.*)$",
-                    "file": 1,
-                    "line": 2,
-                    "severity": 3,
-                    "message": 4
-                }
-            }
-        },
-        {
-            "label": "runGame",
-            "type": "shell",
-            "command": "powershell.exe -file '${workspaceRoot}\\.scripts\\run.ps1' -gamePath '${config:xcom.highlander.gameroot}'",
+            "command": "powershell.exe –NonInteractive –ExecutionPolicy Unrestricted -file '${workspaceRoot}\\.scripts\\build.ps1' -srcDirectory '${workspaceRoot}' -sdkPath '${config:xcom.highlander.sdkroot}' -gamePath '${config:xcom.highlander.gameroot}' -config 'debug'",
+            "group": "build",
             "problemMatcher": []
         },
         {
-            "label": "runUnrealEditor",
+            "label": "Clean",
             "type": "shell",
-            "command": "powershell.exe -file '${workspaceRoot}\\.scripts\\runUnrealEditor.ps1' -sdkPath '${config:xcom.highlander.sdkroot}'",
+            "command": "powershell.exe –NonInteractive –ExecutionPolicy Unrestricted -file '${workspaceRoot}\\.scripts\\clean.ps1' -modName 'MY_MOD_NAME' -srcDirectory '${workspaceRoot}' -sdkPath '${config:xcom.highlander.sdkroot}' -gamePath '${config:xcom.highlander.gameroot}'",
+            "group": "build",
             "problemMatcher": []
+        },
+        {
+            "label": "Full rebuild",
+            "dependsOrder": "sequence",
+            "dependsOn": ["Clean", "Build"]
         }
     ]
 }
