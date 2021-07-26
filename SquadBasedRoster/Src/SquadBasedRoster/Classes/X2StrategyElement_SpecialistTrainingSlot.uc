@@ -166,9 +166,11 @@ static function bool SBR_ST_IsUnitValidForSlotFn(XComGameState_StaffSlot SlotSta
 
 	if (Unit.CanBeStaffed()
 		&& Unit.IsSoldier()
+		&& !Unit.IsResistanceHero() // For now, excluding faction heroes from this slot
 		&& Unit.IsActive()
 		&& Unit.GetRank() >= default.MininumRank
-		&& SlotState.GetMyTemplate().ExcludeClasses.Find(Unit.GetSoldierClassTemplateName()) == INDEX_NONE) // Certain classes can't retrain their abilities (Psi Ops)
+		&& SlotState.GetMyTemplate().ExcludeClasses.Find(Unit.GetSoldierClassTemplateName()) == INDEX_NONE // Certain classes can't retrain their abilities (Psi Ops)
+		&& (class'X2Helper_SquadBasedRoster'.static.GetNumSpecialistAllowed() > 0)) // Limit on the total number of specialists trained
 	{
 		return true;
 	}

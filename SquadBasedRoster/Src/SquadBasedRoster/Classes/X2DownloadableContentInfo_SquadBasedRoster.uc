@@ -2,6 +2,9 @@ class X2DownloadableContentInfo_SquadBasedRoster extends X2DownloadableContentIn
 
 // The class for all default non-faction soldiers
 var config name STARTING_CLASS_NAME;
+var config array<name> arrAbilityList; //For adding random abilities based on EL
+
+
 
 static event OnLoadedSavedGame()
 {
@@ -91,7 +94,8 @@ static event OnPreMission(XComGameState StartGameState, XComGameState_MissionSit
 
     // We need to set the OnMissionStatus and MissionRef for the squad loading into the mission to ensure that postmission
     // handling happens correctly
-    class'XComGameState_SBRSquadManager'.static.GetSquadManager().UpdateSquadPreMission(); 
+    class'XComGameState_SBRSquadManager'.static.GetSquadManager().UpdateSquadPreMission();
+
 }
 
 
@@ -102,6 +106,7 @@ static event OnPostMission()
 
 	class'XComGameState_SBRSquadManager'.static.GetSquadManager().UpdateSquadPostMission(, true); // completed mission
 	//`LWOUTPOSTMGR.UpdateOutpostsPostMission();
+
 }
 
 
@@ -130,11 +135,17 @@ static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, out a
 	local X2AbilityTemplate AbilityTemplate;
     local XComGameState_HeadquartersXCom XCOMHQ;
 	local X2AbilityTemplateManager AbilityTemplateMan;
-	local name AbilityName;
+    local XComGameState_SBRSquadManager SqdMgr;
+    local XComGameState_SBRSquad Squad;
+    local XComGameState_Unit FactionLeader;
+	local name AbilityName, FactionName, SpecialistFactionName;
 	local AbilitySetupData Data, EmptyData;
 	local X2CharacterTemplate CharTemplate;
+    local StateObjectReference MissionRef, UnitRef, FactionRef;
     local array<name> PrimaryWeaponAbilitiesToAdd, SecondaryWeaponAbilitiesToAdd, PrimaryWeaponAbilitiesToRemove, SecondaryWeaponAbilitiesToRemove;
-	local int i;
+	local int i, j, EL, SpecsAllowed, SpecsOnMission, currSoldierIdx;
+    local array<int> SpecData;
+    local bool bRemoveAbilities;
 
 
     XCOMHQ = `XCOMHQ;
@@ -143,21 +154,97 @@ static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, out a
 		return;   
 
     AbilityTemplateMan = class'X2AbilityTemplateManager'.static.GetAbilityTemplateManager();
+    SqdMgr = class'XComGameState_SBRSquadManager'.static.GetSquadManager();
+    MissionRef = XComHQ.MissionRef;
+    Squad = SqdMgr.GetSquadOnMission(MissionRef);
 
     // Fill the PrimaryWeaponAbilities and SecondaryWeaponAbilities (for now, just hardcode to check)
     //PrimaryWeaponAbilitiesToAdd.AddItem('RapidFire');
     //PrimaryWeaponAbilitiesToAdd.AddItem('RapidFire2');
     PrimaryWeaponAbilitiesToAdd.AddItem('Camaraderie'); // Adds EL related stat buffs
 
+    for (i = 0; i < class'X2Helper_SquadBasedRoster'.default.arrAbilityListTemplars.Length; i++)
+    {
+        PrimaryWeaponAbilitiesToRemove.AddItem(class'X2Helper_SquadBasedRoster'.default.arrAbilityListTemplars[i]);
+    }
+    for (i = 0; i < class'X2Helper_SquadBasedRoster'.default.arrAbilityListReapers.Length; i++)
+    {
+        PrimaryWeaponAbilitiesToRemove.AddItem(class'X2Helper_SquadBasedRoster'.default.arrAbilityListReapers[i]);
+    }
+    for (i = 0; i < class'X2Helper_SquadBasedRoster'.default.arrAbilityListSkirmishers.Length; i++)
+    {
+        PrimaryWeaponAbilitiesToRemove.AddItem(class'X2Helper_SquadBasedRoster'.default.arrAbilityListSkirmishers[i]);
+    }
     
+    // Check how many specialists are allowed per mission (based on squad size unlocks and figure out if we need some culling)
+    //SpecsAllowed = class'X2Helper_SquadBasedRoster'.static.GetNumSpecialistsAllowedPerMission(XCOMHQ.Squad);
+    //SpecsOnMission = class'X2Helper_SquadBasedRoster'.static.GetSpecialistsOnMission(XCOMHQ.Squad,SpecData);
+    SpecData = class'X2Helper_SquadBasedRoster'.static.GetSpecialistsToBeCulled(XCOMHQ.Squad, Squad);
+
 
     // Check using issoldier for now and making sure that we only apply buffs to soldiers in the deployed squad
     if (UnitState.IsSoldier() && (XCOMHQ.Squad.Find('ObjectID', UnitState.GetReference().ObjectID) != -1))
     {
-        //Remove abilities before adding, e.g. for specialists in a non-affiliated squad?
-        //To do
 
-        //add the abilities
+        currSoldierIdx = XCOMHQ.Squad.Find('ObjectID', UnitState.GetReference().ObjectID);
+        if (SpecData[currSoldierIdx] == 1)
+            bRemoveAbilities = true;
+        else
+            bRemoveAbilities = false;
+
+
+
+
+/*         //Remove abilities before adding, e.g. for specialists in a non-affiliated squad?
+        if (class'X2Helper_SquadBasedRoster'.static.IsUnitASpecialist(UnitState,SpecialistFactionName))
+        {
+            bRemoveAbilities = true;
+            foreach XCOMHQ.Squad(UnitRef)
+            {
+                FactionLeader = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(UnitRef.ObjectID));
+                if (FactionLeader.GetResistanceFaction().GetMyTemplateName() == SpecialistFactionName)
+                {
+                    bRemoveAbilities = false;
+                    break;
+                }
+            } */
+
+        if (bRemoveAbilities)
+        {
+            for (i = 0; i < PrimaryWeaponAbilitiesToRemove.Length; ++i)
+            {
+                AbilityName = PrimaryWeaponAbilitiesToRemove[i];
+                AbilityTemplate = AbilityTemplateMan.FindAbilityTemplate(AbilityName);
+                if (AbilityTemplate != none && !AbilityTemplate.bUniqueSource)
+                {
+
+                    for (j = SetupData.Length - 1; j >= 0; --j)
+                    {
+                        if (SetupData[j].TemplateName == AbilityName)
+                        {
+                            SetupData.Remove(j,1); // Hope there are no multiples ??
+                            break;
+                        }
+                    }
+                }
+            }
+
+        }
+        
+
+
+        UnitRef = UnitState.GetReference();
+        EL = Squad.GetEffectiveLevelOnMission(UnitRef, XCOMHQ.Squad, FactionRef);
+        if (FactionRef.ObjectID != 0)
+        {
+            FactionName = Squad.GetSquadFaction();
+        }
+
+
+
+        //add the abilities        
+        class'X2Helper_SquadBasedRoster'.static.GetAbilitiesForEL(EL, PrimaryWeaponAbilitiesToAdd, UnitState, FactionName);
+
         for (i = 0; i < PrimaryWeaponAbilitiesToAdd.Length; ++i)
         {
             AbilityName = PrimaryWeaponAbilitiesToAdd[i];
@@ -175,6 +262,32 @@ static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, out a
     }
 }
 
+/// Calls DLC specific popup handlers to route messages to correct display functions
+/// </summary>
+static function bool DisplayQueuedDynamicPopup(DynamicPropertySet PropertySet)
+{
+	if (PropertySet.PrimaryRoutingKey == 'UIAlert_TrainSpecialist')
+	{
+		CallUIAlert_TrainSpecialist(PropertySet);
+		return true;
+	}
+
+	return false;
+}
+
+static function CallUIAlert_TrainSpecialist(const out DynamicPropertySet PropertySet)
+{
+	local XComHQPresentationLayer Pres;
+	local UIAlert_TrainSpecialist Alert;
+
+	Pres = `HQPRES;
+
+	Alert = Pres.Spawn(class'UIAlert_TrainSpecialist', Pres);
+	Alert.DisplayPropertySet = PropertySet;
+	Alert.eAlertName = PropertySet.SecondaryRoutingKey;
+
+	Pres.ScreenStack.Push(Alert);
+}
 
 
 // Print the status and location for all soldiers in all squads
@@ -192,4 +305,11 @@ exec function PrintSquadSoldierStatus()
         SquadState.GetSquadSoldierStatus();
 		
 	}  
+}
+
+
+// Helper to add abilities based on EL specified in config
+static function AddELSpecificAbilities( array<name> AbilitiesToAdd, optional float EL)
+{
+
 }

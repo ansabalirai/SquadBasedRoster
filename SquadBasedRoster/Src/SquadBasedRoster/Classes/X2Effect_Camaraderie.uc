@@ -52,7 +52,7 @@ simulated protected function CalculateCamaraderieStats(XComGameState_Unit Source
 	{
         /// Find out which squad is the one mission
         Squad = XComGameState_SBRSquad(`XCOMHISTORY.GetGameStateForObjectID(SquadMgr.Squads[idx].ObjectID));
-        if (Squad.bOnMission == TRUE)
+        if (Squad.bOnMission == TRUE && Squad.SquadStatus == eStatus_OnMission)
         {
             EL = Squad.GetEffectiveLevelOnMission(TargetUnit.GetReference(), XComHQ.Squad);
             break;

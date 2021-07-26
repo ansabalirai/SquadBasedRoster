@@ -10,6 +10,7 @@ var() ECharStatType ConditionStat;
 var() X2AbilityTemplate AbilityTemplate;
 var string ExtraInfo;
 var name Faction;
+var string FactionIconPath;
 var int AbilityPointsGranted, StatBonus;
 var array<name> GrantedAbilities;
 
@@ -53,6 +54,6 @@ function OnProjectCompleted()
 		ExtraInfo $= "+<font color='#3ABD23'>" $StatBonus $"</font>" @class'X2TacticalGameRulesetDataStructures'.default.m_aCharStatLabels[ConditionStat]
 					@"\n+<font color='#3ABD23'>" $AbilityPointsGranted $"</font>" @m_strAbilityPoints;
 		
-		//class'XComHQPresentationLayer_SBR'.static.UICSTrainingComplete(ProjectFocus, AbilityTemplate, ExtraInfo);
+		class'XComPresentationLayer_SBR'.static.UITrainingCompleteSpecialist(ProjectFocus, AbilityTemplate, ExtraInfo);
 	}
 }

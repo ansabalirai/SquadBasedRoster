@@ -30,6 +30,7 @@ static function CHEventListenerTemplate CreateStatusListeners()
 
 	`CREATE_X2TEMPLATE(class'CHEventListenerTemplate', Template, 'SoldierStatusListeners');
 	Template.AddCHEvent('OverridePersonnelStatus', OnOverridePersonnelStatus, ELD_Immediate);
+	
 
 	Template.RegisterInStrategy = true;
 
@@ -93,6 +94,9 @@ static protected function EventListenerReturn OnOverridePersonnelStatus(Object E
 
 	return ELR_NoInterrupt;
 }
+
+
+
 
 static private function UIScreen GetScreenOrChild(name ScreenType)
 {

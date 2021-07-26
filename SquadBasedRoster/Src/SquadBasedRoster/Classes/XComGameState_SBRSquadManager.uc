@@ -18,6 +18,7 @@ var config int MAX_FIRST_MISSION_SQUAD_SIZE;
 
 var config float AFFINITY_GAIN_WHEN_ON_MISSION;
 var config float AFFINITY_GAIN_WHEN_ON_MISSION_WON;
+var config float AFFINITY_GAIN_WHEN_ON_MISSION_WON_FLAWLESS;
 var config float AFFINITY_LOSS_WHEN_NOT_ON_MISSION;
 
 var config float SQUAD_LEVEL_GAIN_PER_DAY;
@@ -767,6 +768,8 @@ function InitSquadManagerListeners()
 	EventMgr.RegisterForEvent(ThisObj, 'OnDismissSoldier', DismissSoldierFromSquad, ELD_Immediate,,,true); // allow clearing of units from existing squads when dismissed
 	// Registering event to update affinities for units on the mission for all squads
 	EventMgr.RegisterForEvent(ThisObj, 'OnDistributeTacticalGameEndXP', UpdateSquadAffinities, ELD_OnStateSubmitted,,,true);
+	
+	//EventMgr.RegisterForEvent(ThisObj, 'SoldierRankIcon', OverrideSpecialistRankIcon, ELD_Immediate,,,true);
 
 	`LOG("SquadBasedRoster: Squad Manager Events Registered");
 
@@ -976,7 +979,7 @@ function EventListenerReturn DismissSoldierFromSquad(Object EventData, Object Ev
 
 function EventListenerReturn UpdateSquadAffinities(Object EventData, Object EventSource, XComGameState GameState, Name InEventID, Object CallbackData)
 {
-	local bool PlayerWonMission;
+	local bool PlayerWonMission, bFlawless;
 	local XComGameState NewGameState;
 	local XComGameState_HeadquartersXCom XComHQ;
 	local XComGameStateHistory History;
@@ -985,6 +988,7 @@ function EventListenerReturn UpdateSquadAffinities(Object EventData, Object Even
 	local X2MissionSourceTemplate MissionSource;
 	local XComGameState_SBRSquadManager SquadManager;
 	local XComGameState_SBRSquad OnMissionSquad;
+	local XComGameState_Unit Soldier;
 	local StateObjectReference UnitRef, CommandingRef;
 	local array<StateObjectReference> AllSoldierRefsNotOnMission;
 	local int idx;
@@ -1014,6 +1018,7 @@ function EventListenerReturn UpdateSquadAffinities(Object EventData, Object Even
 	}
 
 	PlayerWonMission = true;
+	bFlawless = true;
 	MissionSource = MissionState.GetMissionSource();
 	if (MissionSource.WasMissionSuccessfulFn != none)
 	{
@@ -1046,13 +1051,24 @@ function EventListenerReturn UpdateSquadAffinities(Object EventData, Object Even
 	// Add affinity for soldies on mission for THIS squad
 	foreach XComHQ.Squad(UnitRef)
 	{
-		if (PlayerWonMission)
+		Soldier = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(UnitRef.ObjectID));
+		if (Soldier.GetMyTemplateName() != 'SparkSoldier' && (Soldier.WasInjuredOnMission() || Soldier.IsDead( ) || Soldier.IsBleedingOut())) //Need a better check here :(
+			bFlawless = false;
+	}
+
+	foreach XComHQ.Squad(UnitRef)
+	{
+		if (PlayerWonMission && bFlawless)
+		{
+			OnMissionSquad.UpdateAffinity(UnitRef,  (default.AFFINITY_GAIN_WHEN_ON_MISSION + default.AFFINITY_GAIN_WHEN_ON_MISSION_WON + default.AFFINITY_GAIN_WHEN_ON_MISSION_WON_FLAWLESS));
+		}
+		else if (PlayerWonMission)
+		{
 			OnMissionSquad.UpdateAffinity(UnitRef,  (default.AFFINITY_GAIN_WHEN_ON_MISSION + default.AFFINITY_GAIN_WHEN_ON_MISSION_WON));
+		}
 		else
 			OnMissionSquad.UpdateAffinity(UnitRef,  default.AFFINITY_GAIN_WHEN_ON_MISSION);
 	}
-
-
 	// Squad Levels are updated later in UpdatePostMissionSquad
 
 	// if (NewGameState.GetNumGameStateObjects() > 0)
@@ -1066,4 +1082,43 @@ function EventListenerReturn UpdateSquadAffinities(Object EventData, Object Even
 
 	return ELR_NoInterrupt;
 
+}
+
+function EventListenerReturn OverrideSpecialistRankIcon(Object EventData, Object EventSource, XComGameState NewGameState, Name InEventID, Object CallbackData)
+{
+	local XComGameState_Unit UnitState;
+	local XComLWTuple OverrideTuple;
+	local UnitValue kUnitValue;
+	
+	OverrideTuple = XComLWTuple(EventData);
+	if (OverrideTuple == none)
+	{
+		`REDSCREEN("Override event triggered with invalid event data.");
+		return ELR_NoInterrupt;
+	}
+
+	UnitState = XComGameState_Unit(EventSource);
+	if (UnitState == none)
+	{
+		return ELR_NoInterrupt;
+	}
+
+	if (OverrideTuple.Id != 'SoldierRankIcon')
+	{
+		return ELR_NoInterrupt;
+	}
+
+	UnitState.GetUnitValue('SBR_SpecialistTrainingFactionType',kUnitValue);
+
+	if ((kUnitValue.fValue > 0)  && (OverrideTuple.Data[0].i == -1))
+	{
+		if (kUnitValue.fValue > 0 && kUnitValue.fValue <= 1)
+			OverrideTuple.Data[1].s = "img:///UILibrary_XPACK_Common.Faction_Reaper_1_sm";
+		if (kUnitValue.fValue > 1 && kUnitValue.fValue <= 2)
+			OverrideTuple.Data[1].s = "img:///UILibrary_XPACK_Common.Faction_Skirmisher_flat";
+		if (kUnitValue.fValue > 2 && kUnitValue.fValue <= 3)
+			OverrideTuple.Data[1].s = "img:///UILibrary_XPACK_Common.Faction_Templar_flat";
+	}
+
+	return ELR_NoInterrupt;
 }

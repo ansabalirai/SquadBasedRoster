@@ -83,6 +83,7 @@ function bool OnClassSelected(int iOption)
 		{			
 			// ProjectState.NewClassName = m_arrClasses[iOption].DataName;
             ProjectState.Faction = default.arrClassesForTraining[iOption].ClassName;
+			ProjectState.FactionIconPath = default.arrClassesForTraining[iOption].ClassImagePath;
 			break;
 		}
 		

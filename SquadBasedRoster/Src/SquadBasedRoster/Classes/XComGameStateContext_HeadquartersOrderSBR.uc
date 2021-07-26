@@ -12,6 +12,8 @@ static function CompleteTrainRookie(XComGameState AddToGameState, StateObjectRef
 {   
 	local XComGameState_HeadquartersProjectTrainSpecialist ProjectState;
 	local XComGameState_HeadquartersXCom XComHQ;
+	local XComGameState_SBRSquadManager SquadMgr;
+    local XComGameState_SBRSquad Squad;
 	local XComGameState_Unit UnitState, UpdatedUnit;
     local XComGameStateContext_ChangeContainer ChangeContainer;
     local XComGameState UpdateState;
@@ -20,12 +22,12 @@ static function CompleteTrainRookie(XComGameState AddToGameState, StateObjectRef
 	local XComGameStateHistory History;	
 	local array<XComGameState_Item> EquippedImplants;
 	local XComGameState_Item CombatSim;
-    local int j, Bonus, NewStat, AbilityPointsGranted;
+    local int idx, j, Bonus, NewStat, AbilityPointsGranted;
 	local X2AbilityTemplate AbilityTemplate;
 	local ClassAgnosticAbility Ability;
 	local SoldierClassAbilityType AbilityType;
 	local array<name> GrantedAbilities;	
-	local name GrantedAbility;
+	local name GrantedAbility, FactionName;
 
 	History = `XCOMHISTORY;
 	ProjectState = XComGameState_HeadquartersProjectTrainSpecialist(`XCOMHISTORY.GetGameStateForObjectID(ProjectRef.ObjectID));
@@ -43,25 +45,32 @@ static function CompleteTrainRookie(XComGameState AddToGameState, StateObjectRef
 		UnitState = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(ProjectState.ProjectFocus.ObjectID));
 		if (UnitState != none)
 		{
-            // Build GameState change container
-            ChangeContainer = class'XComGameStateContext_ChangeContainer'.static.CreateEmptyChangeContainer("Staffing Train Officer Slot");
-            UpdateState = History.CreateNewGameState(true, ChangeContainer);
-            UpdatedUnit = XComGameState_Unit(UpdateState.CreateStateObject(class'XComGameState_Unit', UnitState.ObjectID));
-
 			// Set the soldier status back to active
 			UnitState = XComGameState_Unit(AddToGameState.ModifyStateObject(class'XComGameState_Unit', UnitState.ObjectID));
             UnitState.SetStatus(eStatus_Active);
             
-            // Apply the specialist component to the soldier
-            SpecialistState = class'XComGameState_Unit_SBRSpecialist'.static.GetSpecialistComponent(UnitState);
+            // Apply the specialist component to the soldier from the Project State
+			// Set faction type correctly: 1=Reapers, 2=Skirmishers, 3=Templars
+			FactionName = ProjectState.Faction;
+			if (FactionName == 'Faction_Reapers')
+	            UnitState.SetUnitFloatValue('SBR_SpecialistTrainingFactionType', 1.0, eCleanup_Never);
+			else if (FactionName == 'Faction_Skirmishers')
+	            UnitState.SetUnitFloatValue('SBR_SpecialistTrainingFactionType', 2.0, eCleanup_Never);
+			else if (FactionName == 'Faction_Templars')
+	            UnitState.SetUnitFloatValue('SBR_SpecialistTrainingFactionType', 3.0, eCleanup_Never);
 
-            if (SpecialistState == none)
-            {
-                SpecialistState = XComGameState_Unit_SBRSpecialist(UpdateState.CreateStateObject(class'XComGameState_Unit_SBRSpecialist'));
-                SpecialistState.InitComponent();
-            }
-
-            UpdatedUnit.AddComponentObject(SpecialistState);
+			SquadMgr = class'XComGameState_SBRSquadManager'.static.GetSquadManager();
+			for(idx = 0; idx < SquadMgr.Squads.Length; idx++)
+			{
+				Squad = SquadMgr.GetSquad(idx);
+				if(Squad.UnitIsInSquad(UnitState.GetReference()))
+				{
+					if ( XComGameState_ResistanceFaction(History.GetGameStateForObjectID(Squad.Faction.ObjectID)).GetMyTemplateName() == FactionName )
+						Squad.Specialists.AddItem(UnitState.GetReference());
+					break;
+				}
+					
+			}
 
             // May uncomment them if needed. For now we just need to add abilities maybe
 /*          // Update stat first
@@ -83,7 +92,7 @@ static function CompleteTrainRookie(XComGameState AddToGameState, StateObjectRef
             `LOG("UnitState.AbilityPoints (after):" @UnitState.AbilityPoints, class'X2DownloadableContentInfo_WOTC_SoldierConditioning'.default.bEnableLog, 'WOTC_SolderConditioning');  */
 
             // Grant abilities
-            class'X2Helper_SquadBasedRoster'.static.GetAbilities(UnitState.ComInt, GrantedAbilities, UnitState);			
+            class'X2Helper_SquadBasedRoster'.static.GetAbilities(UnitState.ComInt, GrantedAbilities, UnitState, FactionName);			
 			ProjectState.GrantedAbilities = GrantedAbilities;
 
             foreach GrantedAbilities(GrantedAbility){
@@ -113,7 +122,7 @@ static function CompleteTrainRookie(XComGameState AddToGameState, StateObjectRef
 
             // Set unit value so each soldier can only do this training one time
             UnitState.SetUnitFloatValue('SBR_SpecialistTraining', 1.0, eCleanup_Never);
-            //UnitState.SetUnitFloatValue('SBR_SpecialistTrainingFactionType', 1.0, eCleanup_Never);
+
 
 			// Remove the soldier from the staff slot
 			StaffSlotState = UnitState.GetStaffSlot();

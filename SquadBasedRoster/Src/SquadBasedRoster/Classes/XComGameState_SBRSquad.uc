@@ -9,6 +9,7 @@ class XComGameState_SBRSquad extends XComGameState_BaseObject config (SquadBased
 enum ESquadStatus
 {
 	eStatus_Available,		// not otherwise on a mission or in training
+	eStatus_OnMission,      // Deployed on a mission site
 	eStatus_Infiltration,	// Out on infiltration (CI)
 	eStatus_CovertAction,	// out on a covert action
 	eStatus_Training,		// With a soldier (squad leader or specialist) in a training slot (including psi/officer training)
@@ -46,6 +47,7 @@ var array<StateObjectReference> SquadSoldiersOnMission; // possibly different fr
 // The faction this squad is affiliated with - only heroes of this faction
 // can lead this squad.
 var StateObjectReference Faction;
+var name FactionName;
 
 // User-provided (or random) squad name
 var String SquadName;
@@ -87,6 +89,7 @@ function XComGameState_SBRSquad InitSquad(optional string sName = "", optional b
 	local XGParamTag SquadBioTag;
 	local array<StateObjectReference> AllSoldierRefs;
 	local StateObjectReference SoldierRef;
+	local name FName;
 
 	bTemporary = Temp;
 
@@ -121,7 +124,14 @@ function XComGameState_SBRSquad InitSquad(optional string sName = "", optional b
 	AllSoldierRefs = class'X2Helper_SquadBasedRoster'.static.GetAllSoldierRefs();
 	foreach AllSoldierRefs(SoldierRef)
 	{
+		//Unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(SoldierRef.ObjectID));
 		UpdateAffinity(SoldierRef); //Instantiate to 0
+/* 		if (class'X2Helper_SquadBasedRoster'.static.IsUnitALeader(SoldierRef, FName))
+		{
+			Leader = SoldierRef;
+			Faction = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(SoldierRef.ObjectID)).GetResistanceFaction().GetReference();
+			FactionName = FName;
+		} */
 	}
 	
 	return self;
@@ -151,7 +161,7 @@ function XComGameState_Unit GetSoldier(int idx)
 }
 
 // Is this soldier valid for a squad? Yes as long as they aren't dead or captured.
-// We also need to make sure that the soldier is the right fight for the squad affiliation. 
+// We also need to make sure that the soldier is the right fit for the squad affiliation. 
 // For example, leaders can only be moved the relevant faction that the squad is affiliated with.
 
 function bool IsValidSoldierForSquad(XComGameState_Unit Soldier)
@@ -318,7 +328,6 @@ function bool CanSoldierBeAdded(StateObjectReference UnitRef)
 	local XComGameState_Unit Soldier;
 	local XComGameStateHistory History;
 	local XComGameState_ResistanceFaction FactionState;
-	local XComGameState_Unit_SBRSpecialist Specialist;
 
 	History = `XCOMHISTORY;
 	Soldier = XComGameState_Unit(History.GetGameStateForObjectID(UnitRef.ObjectID));
@@ -343,7 +352,6 @@ function bool CanSoldierBeRemoved(StateObjectReference UnitRef)
 	local XComGameState_Unit Soldier;
 	local XComGameStateHistory History;
 	local XComGameState_ResistanceFaction FactionState;
-	local XComGameState_Unit_SBRSpecialist Specialist;
 	local StateObjectReference NullRef;
 
 	History = `XCOMHISTORY;
@@ -411,14 +419,15 @@ function string GetSquadImagePath()
 function UpdateSquadStatus(StateObjectReference UnitRef, bool bAdded)
 {
 	local XComGameStateHistory History;
-	local XComGameState_Unit_SBRSpecialist Specialist;
+	local bool IsSpecialist;
 	local XComGameState_Unit UnitState;
 	local XComGameState_ResistanceFaction FactionState;
+	local name FName;
 	local StateObjectReference NullState;
 
 	History = `XCOMHISTORY;
 	UnitState = XComGameState_Unit(History.GetGameStateForObjectID(UnitRef.ObjectID));
-	Specialist = class'XComGameState_Unit_SBRSpecialist'.static.GetSpecialistComponent(UnitState);
+	IsSpecialist = class'X2Helper_SquadBasedRoster'.static.IsUnitASpecialist(UnitState, FName);
 
 	if (UnitState == none)
 		return;
@@ -429,25 +438,25 @@ function UpdateSquadStatus(StateObjectReference UnitRef, bool bAdded)
 		{
 			Leader = UnitState.GetReference();
 			Faction = UnitState.FactionRef;
+			FactionName = XComGameState_ResistanceFaction(History.GetGameStateForObjectID(Faction.ObjectID)).GetMyTemplateName();
 			return;
 		}
-		else if (Specialist != none)
+		else if (IsSpecialist)
 		{
 			FactionState = XComGameState_ResistanceFaction(History.GetGameStateForObjectID(Faction.ObjectID));
 			if ((Faction.ObjectID > 0) && 
-				(Specialist.FactionName == FactionState.GetMyTemplateName()) &&
-				GetNumSpecialistAllowed() > 0)
+				(FName == FactionState.GetMyTemplateName()))
 			{
-				Specialist.CurrentAssignedSquad = self.GetReference(); //not sure if this works
-				Specialist.CurrentRank = Specialist.SpecialistRank;
+				//Specialist.CurrentAssignedSquad = self.GetReference(); //not sure if this works
+				//Specialist.CurrentRank = Specialist.SpecialistRank;
 				Specialists.AddItem(UnitRef);
 			}
 			// This is a factionless/leaderless squad or over its specialist limit, so specialist becomes a normal soldier
 			// To do: How to remove the specialist component temporarily somehow
-			else if (Faction.ObjectID == 0) 
+			else if (Faction.ObjectID == 0)
 			{
-				Specialist.CurrentAssignedSquad = self.GetReference(); //not sure if this works
-				Specialist.CurrentRank = 0;
+				//Specialist.CurrentAssignedSquad = self.GetReference(); //not sure if this works
+				//Specialist.CurrentRank = 0;
 			}			
 			return;
 		}
@@ -462,13 +471,14 @@ function UpdateSquadStatus(StateObjectReference UnitRef, bool bAdded)
 		{
 			Leader = NullState;
 			Faction = NullState;
+			FactionName = '';
 			return;
 		}
 
-		else if (Specialist != none)
+		else if (IsSpecialist)
 		{
-			Specialist.CurrentAssignedSquad = NullState;
-			Specialist.CurrentRank = 0;
+			//Specialist.CurrentAssignedSquad = NullState;
+			//Specialist.CurrentRank = 0;
 			Specialists.RemoveItem(UnitRef);
 			return;
 		}
@@ -985,16 +995,19 @@ function SetMissionStatus( StateObjectReference MissionRef)
 {
 	CurrentMission = MissionRef;
 	bOnMission = true;
+	SquadStatus = eStatus_OnMission;
 }
 
 function ResetMissionStatus()
 {
 	bOnMission = false;
+	SquadStatus = eStatus_Available;
 }
 
 function ClearMission()
 {
 	bOnMission = false;
+	SquadStatus = eStatus_Available;
 	SquadSoldiersOnMission.Length = 0;	
 	CurrentMission.ObjectID = 0;
 }
@@ -1087,32 +1100,20 @@ function float GetEffectiveLevel (StateObjectReference SoldierRef)
 		 AA * class'XComGameState_SBRSquadManager'.default.AVERAGE_AFFINITY_FACTOR +
 		 SquadLevel * class'XComGameState_SBRSquadManager'.default.SQUAD_LEVEL_FACTOR;
 
+	// Some experimental scaling for reverse difficulty curve
+	EL = class'X2Helper_SquadBasedRoster'.static.ReverseDifficultyScaling(EL/2, 3);
+
 	// Clamped between 0 and 20
-	EL = FMin((EL/2), class'XComGameState_SBRSquadManager'.default.MAX_SOLDIER_EFFECTIVE_LEVEL);
+	EL = FMin(EL, class'XComGameState_SBRSquadManager'.default.MAX_SOLDIER_EFFECTIVE_LEVEL);
 	EL = FMax(0,EL);
 
-	// Some experimental scaling for reverse difficulty curve
-	if (EL > 0 && EL <= 5)
-	{
-		EL = EL*2;
-		EL = FMin(EL,5);
-	}
-	else if (EL > 5 && EL <= 10)
-	{
-		EL = EL*1.5;
-		EL = FMin(EL,10);
-	}
-	else if (EL > 10 && EL <= 15)
-	{
-		EL = EL*1.25;
-		EL = FMin(EL,15);
-	}
+
 
 	return EL;
 }
 
 // This computes the EL for a given soldier based on the SA and AA of the provided set of soldiers, computed with respect to THIS squad. This one is called at the start of the mission to assign the correct EL to units
-function float GetEffectiveLevelOnMission (StateObjectReference SoldierRef, array<StateObjectReference> SoldierRefs)
+function float GetEffectiveLevelOnMission (StateObjectReference SoldierRef, array<StateObjectReference> SoldierRefs, optional out StateObjectReference FactionRef)
 {
 	local float SA, AA, EL;
 	local StateObjectReference UnitRef;
@@ -1131,30 +1132,16 @@ function float GetEffectiveLevelOnMission (StateObjectReference SoldierRef, arra
 	{
 
 		EL += (2*class'XComGameState_SBRSquadManager'.default.LEADER_EFFECTIVE_LEVEL_BUMP); // Halves as per below
-
+		FactionRef = Faction;
 	}
 
-
-	// Clamped between 0 and 20
-	EL = FMin((EL/2), class'XComGameState_SBRSquadManager'.default.MAX_SOLDIER_EFFECTIVE_LEVEL);
-	EL = FMax(0,EL);
 
 	// Some experimental scaling for reverse difficulty curve
-	if (EL > 0 && EL <= 5)
-	{
-		EL = EL*2;
-		EL = FMin(EL,5);
-	}
-	else if (EL > 5 && EL <= 10)
-	{
-		EL = EL*1.5;
-		EL = FMin(EL,10);
-	}
-	else if (EL > 10 && EL <= 15)
-	{
-		EL = EL*1.25;
-		EL = FMin(EL,15);
-	}
+	EL = class'X2Helper_SquadBasedRoster'.static.ReverseDifficultyScaling(EL/2, 3);
+
+	// Clamped between 0 and 20
+	EL = FMin(EL, class'XComGameState_SBRSquadManager'.default.MAX_SOLDIER_EFFECTIVE_LEVEL);
+	EL = FMax(0,EL);
 
 	return EL;
 }
@@ -1318,19 +1305,6 @@ static function XComGameState_HeadquartersProjectRecoverWill GetWillRecoveryProj
 }
 
 
-static function int GetNumSpecialistAllowed()
-{
-	// Depending on squad size upgrade or CI infil unlocks
-	if ((`XCOMHQ.HasSoldierUnlockTemplate('InfiltrationSize1') || `XCOMHQ.HasSoldierUnlockTemplate('SquadSizeIUnlock')))
-		return Max(1 - (default.Specialists.Length), 0);
-
-	if ((`XCOMHQ.HasSoldierUnlockTemplate('InfiltrationSize2') || `XCOMHQ.HasSoldierUnlockTemplate('SquadSizeIIUnlock')))
-		return Max(2 - (default.Specialists.Length), 0);
-
-	return 0;
-}
-
-
 //---------------------------
 // MISC SETTINGS ------------
 //---------------------------
@@ -1343,4 +1317,12 @@ function string GetSquadName()
 function SetSquadName(string NewName)
 {
 	SquadName = NewName;
+}
+
+function name GetSquadFaction()
+{
+	local XComGameState_ResistanceFaction FactionState;
+
+	FactionState = XComGameState_ResistanceFaction(`XCOMHISTORY.GetGameStateForObjectID(Faction.ObjectID));
+	return FactionState.GetMyTemplateName();
 }

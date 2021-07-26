@@ -105,3 +105,4 @@ simulated function EventListenerReturn OnSoldierTacticalToStrategy(Object EventD
 
 	return ELR_NoInterrupt;
 }
+
