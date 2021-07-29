@@ -1101,7 +1101,7 @@ function float GetEffectiveLevel (StateObjectReference SoldierRef)
 		 SquadLevel * class'XComGameState_SBRSquadManager'.default.SQUAD_LEVEL_FACTOR;
 
 	// Some experimental scaling for reverse difficulty curve
-	EL = class'X2Helper_SquadBasedRoster'.static.ReverseDifficultyScaling(EL/2, 3);
+	EL = class'X2Helper_SquadBasedRoster'.static.ReverseDifficultyScaling(EL/2, class'XComGameState_SBRSquadManager'.default.FL_EFFECTIVE_LEVEL_BUMP);
 
 	// Clamped between 0 and 20
 	EL = FMin(EL, class'XComGameState_SBRSquadManager'.default.MAX_SOLDIER_EFFECTIVE_LEVEL);
@@ -1137,7 +1137,7 @@ function float GetEffectiveLevelOnMission (StateObjectReference SoldierRef, arra
 
 
 	// Some experimental scaling for reverse difficulty curve
-	EL = class'X2Helper_SquadBasedRoster'.static.ReverseDifficultyScaling(EL/2, 3);
+	EL = class'X2Helper_SquadBasedRoster'.static.ReverseDifficultyScaling(EL/2, class'XComGameState_SBRSquadManager'.default.FL_EFFECTIVE_LEVEL_BUMP);
 
 	// Clamped between 0 and 20
 	EL = FMin(EL, class'XComGameState_SBRSquadManager'.default.MAX_SOLDIER_EFFECTIVE_LEVEL);

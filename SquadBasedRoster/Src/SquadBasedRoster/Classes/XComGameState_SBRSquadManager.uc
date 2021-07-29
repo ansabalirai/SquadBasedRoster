@@ -20,6 +20,7 @@ var config float AFFINITY_GAIN_WHEN_ON_MISSION;
 var config float AFFINITY_GAIN_WHEN_ON_MISSION_WON;
 var config float AFFINITY_GAIN_WHEN_ON_MISSION_WON_FLAWLESS;
 var config float AFFINITY_LOSS_WHEN_NOT_ON_MISSION;
+var config float AFFINITY_GAIN_BONUS_CLASSLESS;
 
 var config float SQUAD_LEVEL_GAIN_PER_DAY;
 var config float SQUAD_LEVEL_GAIN_PER_MISSION;
@@ -31,6 +32,7 @@ var config float AVERAGE_AFFINITY_FACTOR;
 var config float SQUAD_LEVEL_FACTOR;
 var config int MAX_SOLDIER_EFFECTIVE_LEVEL;
 var config int LEADER_EFFECTIVE_LEVEL_BUMP;
+var config int FL_EFFECTIVE_LEVEL_BUMP;
 
 // The name of the sub-menu for resistance management
 const nmSquadManagementSubMenu = 'SquadManagementMenu';
@@ -1058,16 +1060,39 @@ function EventListenerReturn UpdateSquadAffinities(Object EventData, Object Even
 
 	foreach XComHQ.Squad(UnitRef)
 	{
-		if (PlayerWonMission && bFlawless)
+		if (class'X2DownloadableContentInfo_SquadBasedRoster'.default.GO_CLASSLESS)
 		{
-			OnMissionSquad.UpdateAffinity(UnitRef,  (default.AFFINITY_GAIN_WHEN_ON_MISSION + default.AFFINITY_GAIN_WHEN_ON_MISSION_WON + default.AFFINITY_GAIN_WHEN_ON_MISSION_WON_FLAWLESS));
+			if (PlayerWonMission && bFlawless)
+			{
+				OnMissionSquad.UpdateAffinity(UnitRef,  (default.AFFINITY_GAIN_WHEN_ON_MISSION + default.AFFINITY_GAIN_WHEN_ON_MISSION_WON + default.AFFINITY_GAIN_WHEN_ON_MISSION_WON_FLAWLESS + default.AFFINITY_GAIN_BONUS_CLASSLESS));
+			}
+			else if (PlayerWonMission)
+			{
+				OnMissionSquad.UpdateAffinity(UnitRef,  (default.AFFINITY_GAIN_WHEN_ON_MISSION + default.AFFINITY_GAIN_WHEN_ON_MISSION_WON + default.AFFINITY_GAIN_BONUS_CLASSLESS));
+			}
+			else
+			{
+				OnMissionSquad.UpdateAffinity(UnitRef,  (default.AFFINITY_GAIN_WHEN_ON_MISSION + default.AFFINITY_GAIN_BONUS_CLASSLESS));
+			}
 		}
-		else if (PlayerWonMission)
-		{
-			OnMissionSquad.UpdateAffinity(UnitRef,  (default.AFFINITY_GAIN_WHEN_ON_MISSION + default.AFFINITY_GAIN_WHEN_ON_MISSION_WON));
-		}
+
 		else
-			OnMissionSquad.UpdateAffinity(UnitRef,  default.AFFINITY_GAIN_WHEN_ON_MISSION);
+		{
+			if (PlayerWonMission && bFlawless)
+			{
+				OnMissionSquad.UpdateAffinity(UnitRef,  (default.AFFINITY_GAIN_WHEN_ON_MISSION + default.AFFINITY_GAIN_WHEN_ON_MISSION_WON + default.AFFINITY_GAIN_WHEN_ON_MISSION_WON_FLAWLESS));
+			}
+			else if (PlayerWonMission)
+			{
+				OnMissionSquad.UpdateAffinity(UnitRef,  (default.AFFINITY_GAIN_WHEN_ON_MISSION + default.AFFINITY_GAIN_WHEN_ON_MISSION_WON));
+			}
+			else
+			{
+				OnMissionSquad.UpdateAffinity(UnitRef,  default.AFFINITY_GAIN_WHEN_ON_MISSION);
+			}
+		}
+
+			
 	}
 	// Squad Levels are updated later in UpdatePostMissionSquad
 

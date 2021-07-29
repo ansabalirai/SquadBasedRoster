@@ -22,6 +22,7 @@ var config float fRankScalar;
 var config float fWillScalar;
 var config bool bUseThisAbilityList;
 var config array<float> arrComIntScalar;
+var config float fAbilityChancePerEL;
 
 /* Probably can be used if we build against CI to get the mission site from covert action site directly to assign to a specific squad
 static function XComGameState_MissionSite GetMissionSiteFromAction (XComGameState_CovertAction Action)
@@ -419,18 +420,20 @@ static function GetAbilities(ECombatIntelligence ComInt, out array<name> Abiliti
 }
 
 // This version grants abilities from a common pool and should only add abilities if there is a squad leader on the mission. Called in FinalizeUnitAbilitiesForInit
-static function GetAbilitiesForEL(int EL, out array<name> Abilities, XComGameState_Unit UnitState, name Faction)
+static function GetAbilitiesForEL(float EL, out array<name> Abilities, XComGameState_Unit UnitState, name Faction)
 {
-	local int i, NumberToRoll, RandRoll, NumAbilitiesAdded;
+	local int i, NumberToRoll, RandRoll, FractionalChance, NumAbilitiesAdded;
+	local float NumAbilitiesAddedEL;
 	local array<name> AbilitiesToRoll;
 	local array<name> ClassTemplateAbilities;
 	local name AbilityName;
+	local ECombatIntelligence ComInt;
 
 	// Building the ability pool: Abilities from config
 	// For now, we use generic abilities not related to a faction leader
 	if(Faction != '')
 	{
-		
+		ComInt = UnitState.ComInt;
 		foreach default.arrAbilityList(AbilityName)
 		{			
 			// Validate the abilities added via config
@@ -442,19 +445,46 @@ static function GetAbilitiesForEL(int EL, out array<name> Abilities, XComGameSta
 				AbilitiesToRoll.AddItem(AbilityName);
 			}
 		}
-	
 
-		// Number of rolled abilities is based on EL
-		NumAbilitiesAdded = 1;
+		// First we add abilities based on EL
+		NumAbilitiesAddedEL = EL*default.fAbilityChancePerEL;
 
+		// This handles the absolute/guranteed number added
+		for(i = 0; i < int(NumAbilitiesAddedEL); i++)
+		{
+			NumberToRoll = AbilitiesToRoll.Length;
+			RandRoll = `SYNC_RAND_STATIC(NumberToRoll);
+			Abilities.AddItem(AbilitiesToRoll[RandRoll]);
+			AbilitiesToRoll.Remove(RandRoll, 1);	
+		}
 
-		// Pull random abilities from the pool
-		for(i = 0; i < NumAbilitiesAdded; i++)
+		// For fractional chance
+		FractionalChance = int(NumAbilitiesAddedEL%int(NumAbilitiesAddedEL));
+		if (`SYNC_RAND_STATIC(100) < FractionalChance)
 		{
 			NumberToRoll = AbilitiesToRoll.Length;
 			RandRoll = `SYNC_RAND_STATIC(NumberToRoll);
 			Abilities.AddItem(AbilitiesToRoll[RandRoll]);
 			AbilitiesToRoll.Remove(RandRoll, 1);
+		}
+		
+
+
+		// Pull additional random abilities from the pool based on combat intelligence of the unit
+		for(i = 0; i < default.arrNoOfAbilities[ComInt].Bonus; i++)
+		{
+			NumberToRoll = AbilitiesToRoll.Length;
+			RandRoll = `SYNC_RAND_STATIC(NumberToRoll);
+			Abilities.AddItem(AbilitiesToRoll[RandRoll]);
+			AbilitiesToRoll.Remove(RandRoll, 1);
+		}
+
+		// If there is a chance to get additional ability based on higher combat int
+		if(default.arrNoOfAbilities[ComInt].ChanceForAdditional > 0 && default.arrNoOfAbilities[ComInt].ChanceForAdditional > `SYNC_RAND_STATIC(100))
+		{	
+			// Uh.. this one a bit more optimised. Is it though? (Thor Ragnarok face...)
+			Abilities.AddItem(AbilitiesToRoll[`SYNC_RAND_STATIC(AbilitiesToRoll.Length)]);
+			AbilitiesToRoll.Remove(RandRoll, 1);	
 		}
 	}
 
@@ -677,8 +707,6 @@ static function int GetNumSpecialistAllowed()
 	// We allow 1 specialist per faction leader with squadsize/infil 1 upgrade, increasing to 2
 	// We need a separate limit on how many can be deployed per mission and remove others' abilities
 	NumAllowed = 0;
-	
-	
 	
 	// Depending on squad size upgrade or CI infil unlocks
 	if ((`XCOMHQ.HasSoldierUnlockTemplate('InfiltrationSize2') || `XCOMHQ.HasSoldierUnlockTemplate('SquadSizeIIUnlock')))

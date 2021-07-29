@@ -24,7 +24,7 @@ event OnInit(UIScreen Screen)
 	local XComGameState_HeadquartersXCom XComHQ;
 	local UISquadSelect SquadSelect;
 	local XComGameState_SBRSquadManager SquadMgr;
-	//local UISquadSelect_InfiltrationPanel InfiltrationInfo;
+	local UISquadSelect_SquadInfoPanel SquadInfo;
 	local UISquadContainer SquadContainer;
 	local XComGameState_MissionSite MissionState;
 	local UITextContainer InfilRequirementText, MissionBriefText;
@@ -54,8 +54,6 @@ event OnInit(UIScreen Screen)
 
 	MissionData = XComHQ.GetGeneratedMissionData(XComHQ.MissionRef.ObjectID);
 
-	//UpdateMissionDifficulty(SquadSelect);
-
 	//check if we got here from the SquadBarracks
 	bInSquadEdit = `SCREENSTACK.IsInStack(class'UIPersonnel_SquadBarracks');
 	if(bInSquadEdit)
@@ -75,6 +73,7 @@ event OnInit(UIScreen Screen)
 		}
 
 		SquadSelect.m_kMissionInfo.Remove();
+
 	} 
 	else 
 	{
@@ -103,6 +102,14 @@ event OnInit(UIScreen Screen)
 				// 1) No more than 1 faction hero of any type
 				// 2) If no faction hero selected and one is available to be deployed, show a warning pop up when clicking start mission?
 				// 3) No more than 1/2 specialists of the correct type based on squad size upgrades purchased. If they are of a different type, disable the special perks added (maybe via OnPreMission hook?)
+
+
+			// Show the SquadInfoPanel here
+			SquadInfo = SquadSelect.Spawn(class'UISquadSelect_SquadInfoPanel', SquadSelect);
+			SquadInfo.MCName = 'SquadSelect_SquadInfo';
+			SquadInfo.SquadSoldiers = SquadSelect.XComHQ.Squad;
+			SquadInfo.DelayedInit(0.75);			
+			
 		}
 
 		else
@@ -117,66 +124,18 @@ event OnInit(UIScreen Screen)
 			else
 			{
 				`Log("SquadBasedRoster: UIScreenListener_SquadSelect_LW: Likely Setting up for a infiltration mission (CI)");
+				// Show the SquadInfoPanel here
+				SquadInfo = SquadSelect.Spawn(class'UISquadSelect_SquadInfoPanel', SquadSelect);
+				SquadInfo.MCName = 'SquadSelect_SquadInfo';
+				SquadInfo.SquadSoldiers = SquadSelect.XComHQ.Squad;
+				SquadInfo.DelayedInit(0.75);	
 			}
 				
 
 		}
-
-
-
-		/* MissionBriefText = SquadSelect.Spawn (class'UITextContainer', SquadSelect);
-		MissionBriefText.MCName = 'SquadSelect_MissionBrief_LW';
-		MissionBriefText.bAnimateOnInit = false;
-		MissionBriefText.InitTextContainer('',, 35, 375, 400, 300, false);
-		BriefingString = "<font face='$TitleFont' size='22' color='#a7a085'>" $ CAPS(class'UIMissionIntro'.default.m_strMissionTitle) $ "</font>\n";
-		BriefingString $= "<font face='$NormalFont' size='22' color='#" $ class'UIUtilities_Colors'.const.NORMAL_HTML_COLOR $ "'>";
-		BriefingString $= class'UIUtilities_LW'.static.GetMissionTypeString (XComHQ.MissionRef) $ "\n";
-		if (class'UIUtilities_LW'.static.GetTimerInfoString (MissionState) != "")
-		{
-			BriefingString $= class'UIUtilities_LW'.static.GetTimerInfoString (MissionState) $ "\n";
-		}
-		BriefingString $= class'UIUtilities_LW'.static.GetEvacTypeString (MissionState) $ "\n";
-		if (class'UIUtilities_LW'.static.HasSweepObjective(MissionState))
-		{
-			BriefingString $= class'UIUtilities_LW'.default.m_strSweepObjective $ "\n";
-		}
-		if (class'UIUtilities_LW'.static.FullSalvage(MissionState))
-		{
-			BriefingString $= class'UIUtilities_LW'.default.m_strGetCorpses $ "\n";
-		}
-		BriefingString $= class'UIUtilities_LW'.static.GetMissionConcealStatusString (XComHQ.MissionRef) $ "\n";
-		BriefingString $= "\n";
-		BriefingString $= "<font face='$TitleFont' size='22' color='#a7a085'>" $ CAPS(strAreaOfOperations) $ "</font>\n";
-		BriefingString $= "<font face='$NormalFont' size='22' color='#" $ class'UIUtilities_Colors'.const.NORMAL_HTML_COLOR $ "'>";
-		BriefingString $= class'UIUtilities_LW'.static.GetPlotTypeFriendlyName(MissionState.GeneratedMission.Plot.strType);
-		BriefingString $= "\n";
-		BriefingString $= "</font>";
-		MissionBriefText.SetHTMLText (BriefingString); */
 	}
 }
 
-/* simulated function string RequiredInfiltrationString(float RequiredValue)
-{
-	local XGParamTag ParamTag;
-	local string ReturnString;
-
-	ParamTag = XGParamTag(`XEXPANDCONTEXT.FindTag("XGParam"));
-	ParamTag.IntValue0 = Round(RequiredValue);
-	ReturnString = `XEXPAND.ExpandString(class'UIMission_LWLaunchDelayedMission'.default.m_strInsuffientInfiltrationToLaunch);
-
-	return "<p align='CENTER'><font face='$TitleFont' size='20' color='#000000'>" $ ReturnString $ "</font>";
-}
-
-
-function UpdateMissionDifficulty(UISquadSelect SquadSelect)
-{
-	local XComGameState_MissionSite MissionState;
-	local string Text;
-	
-	MissionState = XComGameState_MissionSite(`XCOMHISTORY.GetGameStateForObjectID(`XCOMHQ.MissionRef.ObjectID));
-	Text = class'UIUtilities_Text_LW'.static.GetDifficultyString(MissionState);
-	SquadSelect.m_kMissionInfo.MC.ChildSetString("difficultyValue", "htmlText", Caps(Text));
-} */
 
 // callback from clicking the rename squad button
 function OnSquadManagerClicked(UIButton Button)
@@ -229,8 +188,12 @@ event OnReceiveFocus(UIScreen Screen)
 {
 	local UISquadSelect SquadSelect;
 	local XComGameState_SBRSquadManager SquadMgr;
+	local XComGameState_SBRSquad CurrentSquad;
+	local StateObjectReference SoldierRef;
 	local int idx;
-	//local UISquadSelect_InfiltrationPanel InfiltrationInfo;
+	local float currSquadLevel, currSquadAffinity, currSquadEL;
+	local string currSquadLevelValText, currSquadAffinityValText, currSquadELValText;
+	local UISquadSelect_SquadInfoPanel SquadInfo;
 
 	if(!Screen.IsA('UISquadSelect')) return;
 
@@ -243,21 +206,40 @@ event OnReceiveFocus(UIScreen Screen)
 	SquadSelect.UpdateData();
 	SquadSelect.UpdateNavHelp();
 
-	//UpdateMissionDifficulty(SquadSelect);
 
-/* 	InfiltrationInfo = UISquadSelect_InfiltrationPanel(SquadSelect.GetChildByName('SquadSelect_InfiltrationInfo_LW', false));
-	if (InfiltrationInfo != none)
+	SquadMgr = class'XComGameState_SBRSquadManager'.static.GetSquadManager();
+	CurrentSquad = XComGameState_SBRSquad(`XCOMHISTORY.GetGameStateForObjectID(SquadMgr.LaunchingMissionSquad.ObjectID));
+
+	if (CurrentSquad != none)
 	{
-		`Log("UIScreenListener_SquadSelect_LW: Found infiltration panel");
+		currSquadLevel = CurrentSquad.SquadLevel;
+		currSquadLevelValText = class'X2Helper_SquadBasedRoster'.static.TruncFloat(currSquadLevel,1);
+		currSquadAffinity = CurrentSquad.GetAverageAffinity(SquadSelect.XComHQ.Squad);
+		currSquadAffinityValText = class'X2Helper_SquadBasedRoster'.static.TruncFloat(currSquadAffinity,1);
 		
-		//remove and recreate infiltration info in order to prevent issues with Flash text updates not getting processed
-		InfiltrationInfo.Remove();
+		foreach SquadSelect.XComHQ.Squad(SoldierRef)
+		{
+			currSquadEL += CurrentSquad.GetEffectiveLevelOnMission(SoldierRef,SquadSelect.XComHQ.Squad );
+		}
+		currSquadEL = currSquadEL/SquadSelect.XComHQ.Squad.Length;
+		currSquadELValText = class'X2Helper_SquadBasedRoster'.static.TruncFloat(currSquadEL,1);
 
-		InfiltrationInfo = SquadSelect.Spawn(class'UISquadSelect_InfiltrationPanel', SquadSelect).InitInfiltrationPanel();
-		InfiltrationInfo.MCName = 'SquadSelect_InfiltrationInfo_LW';
-		InfiltrationInfo.MissionData = MissionData;
-		InfiltrationInfo.Update(SquadSelect.XComHQ.Squad);
-	} */
+
+		// Add and update squad info panel
+		SquadInfo = UISquadSelect_SquadInfoPanel(SquadSelect.GetChildByName('SquadSelect_SquadInfo', false));
+		if (SquadInfo != none)
+		{
+			`log("UIScreenListener_SquadSelect_LW: Found SquadInfo panel");
+			SquadInfo.Remove();
+			SquadInfo = SquadSelect.Spawn(class'UISquadSelect_SquadInfoPanel', SquadSelect).InitInfoPanel();
+			SquadInfo.MCName = 'SquadSelect_SquadInfo';
+			SquadInfo.Update(SquadSelect.XComHQ.Squad, currSquadLevelValText, currSquadAffinityValText,currSquadELValText );
+		}
+	}
+
+
+
+
 
 
 	// Rai - Trigger a check to refresh the status of all squads when a different squad is selected from the drop down list

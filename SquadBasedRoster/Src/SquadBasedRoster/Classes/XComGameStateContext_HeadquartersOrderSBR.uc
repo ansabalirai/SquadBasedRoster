@@ -7,7 +7,6 @@
 class XComGameStateContext_HeadquartersOrderSBR extends XComGameStateContext_HeadquartersOrder config(SquadBasedRoster);
 
 
-
 static function CompleteTrainRookie(XComGameState AddToGameState, StateObjectReference ProjectRef)
 {   
 	local XComGameState_HeadquartersProjectTrainSpecialist ProjectState;
@@ -22,12 +21,13 @@ static function CompleteTrainRookie(XComGameState AddToGameState, StateObjectRef
 	local XComGameStateHistory History;	
 	local array<XComGameState_Item> EquippedImplants;
 	local XComGameState_Item CombatSim;
-    local int idx, j, Bonus, NewStat, AbilityPointsGranted;
+    local int idx, j, Bonus, NewStat, AbilityPointsGranted, RandRoll;
 	local X2AbilityTemplate AbilityTemplate;
 	local ClassAgnosticAbility Ability;
 	local SoldierClassAbilityType AbilityType;
 	local array<name> GrantedAbilities;	
-	local name GrantedAbility, FactionName;
+	local name GrantedAbility, FactionName, SpecialistClassName;
+	local string NewClassIconPath;
 
 	History = `XCOMHISTORY;
 	ProjectState = XComGameState_HeadquartersProjectTrainSpecialist(`XCOMHISTORY.GetGameStateForObjectID(ProjectRef.ObjectID));
@@ -49,16 +49,42 @@ static function CompleteTrainRookie(XComGameState AddToGameState, StateObjectRef
 			UnitState = XComGameState_Unit(AddToGameState.ModifyStateObject(class'XComGameState_Unit', UnitState.ObjectID));
             UnitState.SetStatus(eStatus_Active);
             
+			RandRoll = `SYNC_RAND_STATIC(2);
+
             // Apply the specialist component to the soldier from the Project State
 			// Set faction type correctly: 1=Reapers, 2=Skirmishers, 3=Templars
 			FactionName = ProjectState.Faction;
 			if (FactionName == 'Faction_Reapers')
-	            UnitState.SetUnitFloatValue('SBR_SpecialistTrainingFactionType', 1.0, eCleanup_Never);
+			{
+				UnitState.SetUnitFloatValue('SBR_SpecialistTrainingFactionType', 1.0, eCleanup_Never);
+				NewClassIconPath = "img:///IRIOfficerRankIcons.Reaper.rank_reaper_8";
+				if (RandRoll == 0)
+					SpecialistClassName = 'WOTC_APA_Marksman';
+				else
+					SpecialistClassName = 'WOTC_APA_Specialist';
+			}
+	            
 			else if (FactionName == 'Faction_Skirmishers')
-	            UnitState.SetUnitFloatValue('SBR_SpecialistTrainingFactionType', 2.0, eCleanup_Never);
+			{
+				UnitState.SetUnitFloatValue('SBR_SpecialistTrainingFactionType', 2.0, eCleanup_Never);
+				NewClassIconPath = "img:///IRIOfficerRankIcons.Skirm.rank_skirm_8";
+				if (RandRoll == 0)
+					SpecialistClassName = 'WOTC_APA_Marine';
+				else
+					SpecialistClassName = 'WOTC_APA_Sapper';
+			}
+	            
 			else if (FactionName == 'Faction_Templars')
-	            UnitState.SetUnitFloatValue('SBR_SpecialistTrainingFactionType', 3.0, eCleanup_Never);
-
+			{
+				UnitState.SetUnitFloatValue('SBR_SpecialistTrainingFactionType', 3.0, eCleanup_Never);
+				NewClassIconPath = "img:///IRIOfficerRankIcons.Templar.rank_templar_8";
+				if (RandRoll == 0)
+					SpecialistClassName = 'WOTC_APA_Assault';
+				else
+					SpecialistClassName = 'WOTC_APA_Medic';
+			}
+	            
+			// Update the squad specialist info if unit is currently part of a squad
 			SquadMgr = class'XComGameState_SBRSquadManager'.static.GetSquadManager();
 			for(idx = 0; idx < SquadMgr.Squads.Length; idx++)
 			{
@@ -66,63 +92,65 @@ static function CompleteTrainRookie(XComGameState AddToGameState, StateObjectRef
 				if(Squad.UnitIsInSquad(UnitState.GetReference()))
 				{
 					if ( XComGameState_ResistanceFaction(History.GetGameStateForObjectID(Squad.Faction.ObjectID)).GetMyTemplateName() == FactionName )
-						Squad.Specialists.AddItem(UnitState.GetReference());
+					{
+							Squad.Specialists.AddItem(UnitState.GetReference());						
+					}
+						
 					break;
 				}
 					
 			}
 
-            // May uncomment them if needed. For now we just need to add abilities maybe
-/*          // Update stat first
-            j = default.arrStatRanges.find('Stat', ProjectState.ConditionStat);
-            Bonus = class'X2DownloadableContentInfo_WOTC_SoldierConditioning'.static.RollBonus(UnitState.ComInt, default.arrStatRanges[j]);
-			ProjectState.StatBonus = Bonus;
-            NewStat = UnitState.GetMaxStat(ProjectState.ConditionStat) + Bonus;
-            UnitState.SetBaseMaxStat(ProjectState.ConditionStat, NewStat);    
+			if (class'X2DownloadableContentInfo_SquadBasedRoster'.default.GO_CLASSLESS)
+			{
+				//UnitState.ResetRankToRookie(); //this bugger resets all to standard Rookie ignoring gained stats. So we need to do this first before setting up all the stats that we got after rollback
+				UnitState.ResetSoldierRank(); // Clear their rank
+				UnitState.ResetSoldierAbilities(); // Clear their current abilities
+				UnitState.RankUpSoldier(AddToGameState, SpecialistClassName); // The class template name
+				UnitState.ApplySquaddieLoadout(AddToGameState, XComHQ);
+				UnitState.ApplyBestGearLoadout(AddToGameState); // Make sure the squaddie has the best gear available
+				UnitState.AddXp(class'X2ExperienceConfig'.static.GetRequiredXp(`GET_MAX_RANK - 1)); // add a ton of XP
+			}
 
-            `LOG("Which stat:" @ProjectState.ConditionStat, class'X2DownloadableContentInfo_WOTC_SoldierConditioning'.default.bEnableLog, 'WOTC_SolderConditioning');
-            `LOG("Bonus:" @Bonus, class'X2DownloadableContentInfo_WOTC_SoldierConditioning'.default.bEnableLog, 'WOTC_SolderConditioning');
-            `LOG("NewStat:" @NewStat, class'X2DownloadableContentInfo_WOTC_SoldierConditioning'.default.bEnableLog, 'WOTC_SolderConditioning');
+			else
+			{
+				// Randomly grant abilities from config deck for specialists
+				class'X2Helper_SquadBasedRoster'.static.GetAbilities(UnitState.ComInt, GrantedAbilities, UnitState, FactionName);			
+				ProjectState.GrantedAbilities = GrantedAbilities;
 
-            // Give Ability Points
-            `LOG("UnitState.AbilityPoints (before):" @UnitState.AbilityPoints, class'X2DownloadableContentInfo_WOTC_SoldierConditioning'.default.bEnableLog, 'WOTC_SolderConditioning');
-			AbilityPointsGranted = class'X2DownloadableContentInfo_WOTC_SoldierConditioning'.static.GiveAbilityPoints(UnitState.ComInt);
-            UnitState.AbilityPoints += AbilityPointsGranted;
-			ProjectState.AbilityPointsGranted = AbilityPointsGranted;
-            `LOG("UnitState.AbilityPoints (after):" @UnitState.AbilityPoints, class'X2DownloadableContentInfo_WOTC_SoldierConditioning'.default.bEnableLog, 'WOTC_SolderConditioning');  */
+				foreach GrantedAbilities(GrantedAbility){
+					AbilityTemplate = class'X2AbilityTemplateManager'.static.GetAbilityTemplateManager().FindAbilityTemplate(GrantedAbility);
+					
+					if(AbilityTemplate != none)
+					{
+						AbilityType.AbilityName = AbilityTemplate.DataName;
+						`LOG("SBR: Ability:" @AbilityTemplate.DataName @ "added to"@ UnitState.GetFullName()); 
 
-            // Grant abilities
-            class'X2Helper_SquadBasedRoster'.static.GetAbilities(UnitState.ComInt, GrantedAbilities, UnitState, FactionName);			
-			ProjectState.GrantedAbilities = GrantedAbilities;
+						Ability.AbilityType = AbilityType;
+						Ability.bUnlocked = true;
+						Ability.iRank = 0;
+						UnitState.bSeenAWCAbilityPopup = true;
+						UnitState.AWCAbilities.AddItem(Ability);
 
-            foreach GrantedAbilities(GrantedAbility){
-                AbilityTemplate = class'X2AbilityTemplateManager'.static.GetAbilityTemplateManager().FindAbilityTemplate(GrantedAbility);
-                
-				if(AbilityTemplate != none)
-				{
-					AbilityType.AbilityName = AbilityTemplate.DataName;
-					`LOG("SBR: Ability:" @AbilityTemplate.DataName @ "added to"@ UnitState.GetFullName()); 
+						ProjectState.AbilityTemplate = AbilityTemplate;
+					}
+					else
+					{
+						`LOG("SBR: Invalid Ability:" @AbilityTemplate.DataName @ "NOT added to"@ UnitState.GetFullName()); 
+					}
+				}  
+			}
 
-					Ability.AbilityType = AbilityType;
-					Ability.bUnlocked = true;
-					Ability.iRank = 0;
-					UnitState.bSeenAWCAbilityPopup = true;
-					UnitState.AWCAbilities.AddItem(Ability);
+			// Update the soldier class icon now that they are affiliated with a squad (using Irirdar's classpack)
+			//UnitState.GetSoldierClassTemplate().IconImage = NewClassIconPath;
 
-					ProjectState.AbilityTemplate = AbilityTemplate;
-				}
-				else
-				{
-					`LOG("SBR: Invalid Ability:" @AbilityTemplate.DataName @ "NOT added to"@ UnitState.GetFullName()); 
-				}
-            }        
+      
 
 /* 			// Will reduction
             class'X2DownloadableContentInfo_WOTC_SoldierConditioning'.static.GetReducedWill(UnitState, AddToGameState);  */   
 
             // Set unit value so each soldier can only do this training one time
             UnitState.SetUnitFloatValue('SBR_SpecialistTraining', 1.0, eCleanup_Never);
-
 
 			// Remove the soldier from the staff slot
 			StaffSlotState = UnitState.GetStaffSlot();

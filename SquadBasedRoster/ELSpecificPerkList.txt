@@ -1,0 +1,100 @@
+This is the list of perks (in rough order of how impactful they can be) imparted to units based on their EL when deployed on the mission
+
+; LW2 class perks
+LW2WotC_Aggression
+LW2WotC_BluescreenBombs
+LW2WotC_BodyShield
+LW2WotC_Bombardier
+LW2WotC_BoostedCores
+LW2WotC_BringEmOn
+LW2WotC_CenterMass
+LW2WotC_CloseandPersonal
+LW2WotC_ClutchShot
+LW2WotC_CombatAwareness
+LW2WotC_CombatFitness
+LW2WotC_CombatRush
+LW2WotC_CoupDeGrace
+LW2WotC_Covert
+LW2WotC_DamnGoodGround
+LW2WotC_DenseSmoke
+LW2WotC_DepthPerception
+LW2WotC_EmergencyLifeSupport
+LW2WotC_Evasive
+LW2WotC_Executioner
+LW2WotC_Flashbanger
+LW2WotC_Flush
+LW2WotC_Formidable
+LW2WotC_Fortify
+LW2WotC_FullKit
+LW2WotC_GhostGrenade
+LW2WotC_Ghostwalker
+LW2WotC_GrazingFire
+LW2WotC_Gunslinger
+LW2WotC_HardTarget
+LW2WotC_HEATWarheads
+LW2WotC_HitandSlither
+LW2WotC_ImpactFields
+LW2WotC_Infighter
+LW2WotC_LightningReflexes
+LW2WotC_LoneWolf
+LW2WotC_LowProfile
+LW2WotC_NeedleGrenades
+LW2WotC_Protector
+LW2WotC_RapidDeployment
+LW2WotC_Resilience
+LW2WotC_SmartMacrophages
+LW2WotC_Smoker
+LW2WotC_Sprinter
+LW2WotC_SteadyWeapon
+LW2WotC_TacticalSense
+LW2WotC_VolatileMix
+LW2WotC_WalkFire
+LW2WotC_WilltoSurvive
+
+; Shadow Ops
+ShadowOps_AbsolutelyCritical	You get additional Crit chance against flanked or uncovered targets.	
+ShadowOps_AgainstTheOdds	Gain bonus Aim per enemy the squad can see.	
+ShadowOps_CombatDrugs	A fast-acting stimulant in your smoke grenades grants units in the initial area +20 Aim and +20 Will for 2 turns.	
+ShadowOps_Entrench	Increase Defense and Dodge until you move. Only works in cover.	
+ShadowOps_ExtraMunitions	Grants 1 free explosive grenade item to your inventory.	
+ShadowOps_FirstAid	You have one free medikit use on every mission. Each carried medikit gives you two additional uses.	
+ShadowOps_FocusedDefense	You get additional Defense and Dodge against attacks by the closest visible enemy while not flanked.	
+ShadowOps_Fortify	Whenever you enter overwatch or use suppression, you gain bonus Defense until the start of your next turn.	
+ShadowOps_Fracture_LW2	Your assigned weapon attacks against mechanical units have bonus Aim and shred armor.	
+ShadowOps_GoodEye	Your shots cannot be dodged.	
+ShadowOps_HeavyArmor	You gain additional Armor points based on your equipped armor.	
+ShadowOps_IronWill	Increases Will and guarantees that you bleed out instead of die outright once per mission.	
+ShadowOps_Lightfoot	Gain bonus Mobility. You are 20% harder to detect while concealed.	
+ShadowOps_LineEmUp	You get additional Aim and Crit chance on ranged attacks against the closest visible enemy.	
+ShadowOps_Magnum	Your pistol attacks get bonus Aim and deal additional damage.	
+ShadowOps_MovingTarget	You get additional Defense and Dodge against reaction fire.	
+ShadowOps_Overkill	Your attacks deal additional damage to enemies at half or less of their original hit points.	
+ShadowOps_Packmaster	Limited-use items in utility slots gain a bonus use. This does not include grenades in the grenade-only slot.	
+ShadowOps_Precision	You get bonus Aim against targets in full cover.	
+ShadowOps_ReadyForAnything	When you make a standard attack with your primary weapon you automatically enter overwatch.	
+ShadowOps_Resilience	You can't be critically hit.	
+ShadowOps_RifleSuppression	Fire a barrage that pins down a target, granting reaction fire against it if it moves, and imposing a penalty to the target's aim.	Untested
+ShadowOps_Rocketeer	Your rocket launcher or heavy weapon gains a bonus use.
+ShadowOps_Scout	Grants 1 free battle scanner item to your inventory.	
+ShadowOps_Scrounger	There is a chance of an extra loot drop whenever you are on a mission.	
+ShadowOps_SensorOverlays	All squad members get bonus Crit chance against enemies you can see.	
+
+
+
+
+
+
+
+ShadowOps_SmokeAndMirrors	You have one free smoke grenade use on every mission. Launching or throwing a smoke grenade does not end your turn.	Untested
+
+
+ShadowOps_Stalker	Gain bonus Mobility and Aim while concealed.	
+	
+ShadowOps_SurvivalInstinct	Gain additional Defense and Crit chance while injured.	
+
+ShadowOps_ThisOnesMine	Mark a target, giving you bonus Crit chance and Defense against it for 3 turns. This ability doesn't cost an action.	
+ShadowOps_Tracking	You detect nearby units even without line of sight.	
+
+
+
+

@@ -1,0 +1,20 @@
+This mod attempts to impart more focus on maintaining cohesive squads of soldiers who go on missions together, in terms of adding varrious stat bonuses as their cammaradrie increases, as well granting them powerful perks later on. It relies on the squad manager functionality introduced in my earlier mod (but make sure the two mods are not turned on at the same time) and builds a squad level and affinity framework to keep track of which soldier goes on which mission. The key features are:
+- The barracks is organized into squads, rather than a flat list of soldiers. (The squad management framewrok from Squad Manager mod is used for this).
+- Units can only be in one squad at a time, but can easily be moved between them.
+- Squads may have a leader - squad leaders are always faction heroes and heroes can _only_ be squad leaders, not squad members. To me, that makes thematic sense as well, given as they are called "hero" classes.
+- Squad leader sets the affiliation of the squad with a faction. New squads can always be created for new heroes, or initially unaffiliated squads with no leader.
+- Squads may deploy with no leader if no appropriate faction unit is available, but they get limited benefits from squad cohesion in this way
+- GTS now allows training of specialists (not the class) which are units affiliated with a certain faction (Reaper, Skirmisher or Templar). This training gives them certain abilities that only work if they are part of a squad with the same affiliation. This incentivises deploying the same squad together even more.
+- Squads level up by going on missions. Mission count rather than kills is the important number. Successful missions count more than failures, but failures still count more than doing nothing.
+- Squad Level passively increases over time, and the initial SL of new squads increases as the campaign progresses. But both are slower than actively going on missions. This helps ensure creating new squads mid/late campaign is still viable, and also ensures that a squad created early but infrequently used won't be outclassed by a newly created squad.
+- Units have _squad affinity_ (SA) for each squad. Going on missions for a squad increases that unit's SA. Passively being a squad member also increases SA over time, but slowly.
+- Moving a unit to a new squad does not remove the old SA from the old squad, but it does decay over time/missions for units no longer in a particular squad.
+- The mission squad as a whole has an _average affinity_ (AA) value, which is just an average of all the participating unit SA values.
+- Each unit on the mission gets an _effective unit level_ (EL). This is influenced by the SL and modified by their SA and AA. Exact formula is detailed in the SquadBasedRoster.ini alongside other helpful description.
+- Examples/intent:
+    - A fresh squad from campaign beginning has low SL, and all units have low SA. This means low AA. They're all basically rookies - they all have low EL.
+    - A mid-game squad that has taken few losses and has lots of soldiers that have been around for a while has a medium SL, SA and AA values: the soldiers all have a medium EL.
+    - If that squad loses a soldier and is replaced by a fresh recuit, this recruit has low SA, but the other vets still have high SA. The AA is dragged down a little by the newbie, so vets have their EL reduced a little bit each. But the AA is much higher than the newbie's SA, so this unit's EL is pulled up and they perform better than a rookie would.
+    - If a midgame squad is wiped and has a completely new roster, the SL stays high but the units all have low SA, so the AA is also low. They will all have much lower EL, but this should still be offset by the higher SL so they are not just rookies.
+    - Creating a brand new squad mid/late game is similar to a squadwipe in that there is low SA and AA, but because the baseline SL increases over time they still aren't just plain rookies.
+- A unit's EL defines the bonuses it gets for the mission. EL imparts passive bonuses to stats, but since the EL is mission-specific this will vary as squad composition and level changes.

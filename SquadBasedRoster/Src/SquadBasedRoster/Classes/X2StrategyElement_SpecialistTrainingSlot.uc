@@ -155,6 +155,7 @@ static function bool SBR_ST_IsUnitValidForSlotFn(XComGameState_StaffSlot SlotSta
 {
 	local XComGameState_Unit Unit;
 	local UnitValue kUnitValue;
+	local int EffectiveMinRank;
 
 	Unit = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(UnitInfo.UnitRef.ObjectID));
 
@@ -164,11 +165,13 @@ static function bool SBR_ST_IsUnitValidForSlotFn(XComGameState_StaffSlot SlotSta
 		if(kUnitValue.fValue > 0) return false;
 	}
 
+
+	EffectiveMinRank = (class'X2DownloadableContentInfo_SquadBasedRoster'.default.GO_CLASSLESS) ? 0 : 3;
 	if (Unit.CanBeStaffed()
 		&& Unit.IsSoldier()
 		&& !Unit.IsResistanceHero() // For now, excluding faction heroes from this slot
 		&& Unit.IsActive()
-		&& Unit.GetRank() >= default.MininumRank
+		&& Unit.GetRank() >= EffectiveMinRank
 		&& SlotState.GetMyTemplate().ExcludeClasses.Find(Unit.GetSoldierClassTemplateName()) == INDEX_NONE // Certain classes can't retrain their abilities (Psi Ops)
 		&& (class'X2Helper_SquadBasedRoster'.static.GetNumSpecialistAllowed() > 0)) // Limit on the total number of specialists trained
 	{
