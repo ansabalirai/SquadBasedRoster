@@ -7,6 +7,7 @@
 class X2StrategyElement_SpecialistTrainingSlot extends X2StrategyElement_DefaultStaffSlots config(SquadBasedRoster);
 
 var config array<name> arrExcludedClassesFromSlot;
+var config array<name> arrPromotionClassesFromSlot;
 var config int MininumRank;
 
 //---------------------------------------------------------------------------------------

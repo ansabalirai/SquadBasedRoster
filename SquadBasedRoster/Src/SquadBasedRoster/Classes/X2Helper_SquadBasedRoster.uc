@@ -14,7 +14,7 @@ struct AbilityGrant
 };
 
 var config array<int> arrComIntBonus;
-var config array<name> arrAbilityList, arrAbilityListTemplars, arrAbilityListReapers, arrAbilityListSkirmishers;
+var config array<name> arrAbilityList, arrAbilityListTemplars, arrAbilityListReapers, arrAbilityListSkirmishers, arrAbilityListGeneral;
 var config array<name> arrExcludedAbility;
 var config array<AbilityGrant> arrNoOfAbilities;
 var config array<int> arrConditionSoldierDays;
@@ -490,7 +490,7 @@ static function GetAbilitiesForEL(float EL, out array<name> Abilities, XComGameS
 
 }
 
-/*
+
 static function GetClassTemplateAbilities(XComGameState_Unit UnitState, out array<name> ClassTemplateAbilities)
 {	
 	local array<SoldierClassAbilityType> CrossClassAbilities;
@@ -507,7 +507,6 @@ static function GetClassTemplateAbilities(XComGameState_Unit UnitState, out arra
 				&& class'X2AbilityTemplateManager'.static.GetAbilityTemplateManager().FindAbilityTemplate(stCrossClassAbilities.AbilityName) != none)
 			{
 				ClassTemplateAbilities.AddItem(stCrossClassAbilities.AbilityName);
-				`LOG("Added AWC ability:" @stCrossClassAbilities.AbilityName, default.bEnableLog, 'WOTC_SolderConditioning');
 			}
 		}
 	}
@@ -521,12 +520,11 @@ static function GetClassTemplateAbilities(XComGameState_Unit UnitState, out arra
 					&& class'X2AbilityTemplateManager'.static.GetAbilityTemplateManager().FindAbilityTemplate(stCrossClassAbilities.AbilityName) != none)
 				{					
 					ClassTemplateAbilities.AddItem(stCrossClassAbilities.AbilityName);
-					`LOG("Added Random Deck ability:" @stCrossClassAbilities.AbilityName, default.bEnableLog, 'WOTC_SolderConditioning');
 				}
 			}
 		}		
 	}
-} */
+} 
 
 
 

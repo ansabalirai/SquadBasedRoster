@@ -49,7 +49,7 @@ static function CompleteTrainRookie(XComGameState AddToGameState, StateObjectRef
 			UnitState = XComGameState_Unit(AddToGameState.ModifyStateObject(class'XComGameState_Unit', UnitState.ObjectID));
             UnitState.SetStatus(eStatus_Active);
             
-			RandRoll = `SYNC_RAND_STATIC(2);
+			RandRoll = `SYNC_RAND_STATIC(class'X2StrategyElement_SpecialistTrainingSlot'.default.arrPromotionClassesFromSlot.Length);
 
             // Apply the specialist component to the soldier from the Project State
 			// Set faction type correctly: 1=Reapers, 2=Skirmishers, 3=Templars
@@ -58,30 +58,21 @@ static function CompleteTrainRookie(XComGameState AddToGameState, StateObjectRef
 			{
 				UnitState.SetUnitFloatValue('SBR_SpecialistTrainingFactionType', 1.0, eCleanup_Never);
 				NewClassIconPath = "img:///IRIOfficerRankIcons.Reaper.rank_reaper_8";
-				if (RandRoll == 0)
-					SpecialistClassName = 'WOTC_APA_Marksman';
-				else
-					SpecialistClassName = 'WOTC_APA_Specialist';
+				SpecialistClassName = class'X2StrategyElement_SpecialistTrainingSlot'.default.arrPromotionClassesFromSlot[RandRoll];
 			}
 	            
 			else if (FactionName == 'Faction_Skirmishers')
 			{
 				UnitState.SetUnitFloatValue('SBR_SpecialistTrainingFactionType', 2.0, eCleanup_Never);
 				NewClassIconPath = "img:///IRIOfficerRankIcons.Skirm.rank_skirm_8";
-				if (RandRoll == 0)
-					SpecialistClassName = 'WOTC_APA_Marine';
-				else
-					SpecialistClassName = 'WOTC_APA_Sapper';
+				SpecialistClassName = class'X2StrategyElement_SpecialistTrainingSlot'.default.arrPromotionClassesFromSlot[RandRoll];
 			}
 	            
 			else if (FactionName == 'Faction_Templars')
 			{
 				UnitState.SetUnitFloatValue('SBR_SpecialistTrainingFactionType', 3.0, eCleanup_Never);
 				NewClassIconPath = "img:///IRIOfficerRankIcons.Templar.rank_templar_8";
-				if (RandRoll == 0)
-					SpecialistClassName = 'WOTC_APA_Assault';
-				else
-					SpecialistClassName = 'WOTC_APA_Medic';
+				SpecialistClassName = class'X2StrategyElement_SpecialistTrainingSlot'.default.arrPromotionClassesFromSlot[RandRoll];
 			}
 	            
 			// Update the squad specialist info if unit is currently part of a squad
@@ -101,15 +92,15 @@ static function CompleteTrainRookie(XComGameState AddToGameState, StateObjectRef
 					
 			}
 
-			if (class'X2DownloadableContentInfo_SquadBasedRoster'.default.GO_CLASSLESS)
+			if ((class'X2DownloadableContentInfo_SquadBasedRoster'.default.GO_CLASSLESS) || true)
 			{
 				//UnitState.ResetRankToRookie(); //this bugger resets all to standard Rookie ignoring gained stats. So we need to do this first before setting up all the stats that we got after rollback
-				UnitState.ResetSoldierRank(); // Clear their rank
+				//UnitState.ResetSoldierRank(); // Clear their rank
 				UnitState.ResetSoldierAbilities(); // Clear their current abilities
-				UnitState.RankUpSoldier(AddToGameState, SpecialistClassName); // The class template name
+				UnitState.RankUpSoldier(AddToGameState, SpecialistClassName); // The new class template name
 				UnitState.ApplySquaddieLoadout(AddToGameState, XComHQ);
 				UnitState.ApplyBestGearLoadout(AddToGameState); // Make sure the squaddie has the best gear available
-				UnitState.AddXp(class'X2ExperienceConfig'.static.GetRequiredXp(`GET_MAX_RANK - 1)); // add a ton of XP
+				//UnitState.AddXp(class'X2ExperienceConfig'.static.GetRequiredXp(`GET_MAX_RANK - 1)); // add a ton of XP
 			}
 
 			else

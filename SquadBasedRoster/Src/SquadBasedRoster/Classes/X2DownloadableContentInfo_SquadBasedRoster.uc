@@ -175,7 +175,16 @@ static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, out a
     {
         PrimaryWeaponAbilitiesToRemove.AddItem(class'X2Helper_SquadBasedRoster'.default.arrAbilityListSkirmishers[i]);
     }
+    for (i = 0; i < class'X2Helper_SquadBasedRoster'.default.arrAbilityListGeneral.Length; i++)
+    {
+        PrimaryWeaponAbilitiesToRemove.AddItem(class'X2Helper_SquadBasedRoster'.default.arrAbilityListGeneral[i]);
+    }
     
+    // If classless, we need to strip all of the unit's class abilities as well
+    if (default.GO_CLASSLESS)
+        class'X2Helper_SquadBasedRoster'.static.GetClassTemplateAbilities(UnitState, PrimaryWeaponAbilitiesToRemove);
+
+
     // Check how many specialists are allowed per mission (based on squad size unlocks and figure out if we need some culling)
     SpecData = class'X2Helper_SquadBasedRoster'.static.GetSpecialistsToBeCulled(XCOMHQ.Squad, Squad);
 
@@ -189,23 +198,6 @@ static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, out a
             bRemoveAbilities = true;
         else
             bRemoveAbilities = false;
-
-
-
-
-/*         //Remove abilities before adding, e.g. for specialists in a non-affiliated squad?
-        if (class'X2Helper_SquadBasedRoster'.static.IsUnitASpecialist(UnitState,SpecialistFactionName))
-        {
-            bRemoveAbilities = true;
-            foreach XCOMHQ.Squad(UnitRef)
-            {
-                FactionLeader = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(UnitRef.ObjectID));
-                if (FactionLeader.GetResistanceFaction().GetMyTemplateName() == SpecialistFactionName)
-                {
-                    bRemoveAbilities = false;
-                    break;
-                }
-            } */
         // We may need some handling here in case we are running classless and need to remove more class based abilities for the specialists in case they are deployed without a leader
         if (bRemoveAbilities)
         {
@@ -230,7 +222,7 @@ static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, out a
         }
 
 
-        // Adding EL specific abilities regardless of squad composition
+        // Adding EL specific abilities regardless of squad composition and soldier class
         UnitRef = UnitState.GetReference();
         EL = Squad.GetEffectiveLevelOnMission(UnitRef, XCOMHQ.Squad, FactionRef);
         if (FactionRef.ObjectID != 0)
